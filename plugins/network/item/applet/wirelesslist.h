@@ -88,13 +88,15 @@ private:
     QTimer *m_updateAPTimer;
     Dtk::Widget::DPictureSequenceView *m_indicator;
 
-    QJsonObject m_editConnectionData;
-
     QVBoxLayout *m_centralLayout;
     QWidget *m_centralWidget;
     DeviceControlWidget *m_controlPanel;
 
     AccessPointWidget *m_clickedAPW;
+
+public:
+    bool isHotposActive;
+
 };
 
 #endif // WIRELESSAPPLET_H

@@ -20,6 +20,7 @@
  */
 
 #include "fashiontraywidgetwrapper.h"
+#include "../xembedtraywidget.h"
 
 #include <QPainter>
 #include <QPainterPath>
@@ -29,6 +30,7 @@
 #include <QMimeData>
 
 #include <DStyle>
+#include <DGuiApplicationHelper>
 
 #include "constants.h"
 
@@ -50,8 +52,6 @@ FashionTrayWidgetWrapper::FashionTrayWidgetWrapper(const QString &itemKey, Abstr
     setStyleSheet("background: transparent;");
     setAcceptDrops(true);
 
-    m_absTrayWidget->setVisible(true);
-
     m_layout->setSpacing(0);
     m_layout->setMargin(0);
     m_layout->setContentsMargins(0, 0, 0, 0);
@@ -64,9 +64,11 @@ FashionTrayWidgetWrapper::FashionTrayWidgetWrapper(const QString &itemKey, Abstr
     connect(m_absTrayWidget, &AbstractTrayWidget::clicked, this, &FashionTrayWidgetWrapper::onTrayWidgetClicked);
 
     setMinimumSize(PLUGIN_BACKGROUND_MIN_SIZE, PLUGIN_BACKGROUND_MIN_SIZE);
+
+    m_absTrayWidget->show();
 }
 
-AbstractTrayWidget *FashionTrayWidgetWrapper::absTrayWidget() const
+QPointer<AbstractTrayWidget> FashionTrayWidgetWrapper::absTrayWidget() const
 {
     return m_absTrayWidget;
 }
@@ -87,14 +89,30 @@ void FashionTrayWidgetWrapper::paintEvent(QPaintEvent *event)
     if (rect().height() > PLUGIN_BACKGROUND_MIN_SIZE) {
         QPainter painter(this);
         painter.setRenderHint(QPainter::Antialiasing, true);
-        painter.setOpacity(0.5);
 
-        QColor color = QColor::fromRgb(40, 40, 40);;
-        if (m_hover) {
-            color = QColor::fromRgb(60, 60, 60);
-        }
-        if (m_pressed) {
-            color = QColor::fromRgb(20, 20, 20);
+        QColor color;
+        if (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
+            color = Qt::black;
+            painter.setOpacity(0.5);
+
+            if (m_hover) {
+                painter.setOpacity(0.6);
+            }
+
+            if (m_pressed) {
+                painter.setOpacity(0.3);
+            }
+        } else {
+            color = Qt::white;
+            painter.setOpacity(0.1);
+
+            if (m_hover) {
+                painter.setOpacity(0.2);
+            }
+
+            if (m_pressed) {
+                painter.setOpacity(0.05);
+            }
         }
 
         DStyleHelper dstyle(style());
@@ -162,18 +180,16 @@ void FashionTrayWidgetWrapper::leaveEvent(QEvent *event)
     // here we should check the mouse position to ensure the mouse is really leaved
     // because this leaveEvent will also be called if setX11PassMouseEvent(false) is invoked
     // in XWindowTrayWidget::sendHoverEvent()
-    if (!rect().contains(mapFromGlobal(QCursor::pos()))) {
-        m_hover = false;
-        m_pressed = false;
-        update();
+
+    if (qobject_cast<XEmbedTrayWidget *>(m_absTrayWidget) && rect().contains(mapFromGlobal(QCursor::pos()))) {
+        return QWidget::leaveEvent(event);
     }
 
-    QWidget::leaveEvent(event);
-}
+    m_hover = false;
+    m_pressed = false;
+    update();
 
-QSize FashionTrayWidgetWrapper::sizeHint() const
-{
-    return QSize(PLUGIN_BACKGROUND_MAX_SIZE, PLUGIN_BACKGROUND_MAX_SIZE);
+    QWidget::leaveEvent(event);
 }
 
 void FashionTrayWidgetWrapper::resizeEvent(QResizeEvent *event)
@@ -193,6 +209,9 @@ void FashionTrayWidgetWrapper::resizeEvent(QResizeEvent *event)
 
 void FashionTrayWidgetWrapper::handleMouseMove(QMouseEvent *event)
 {
+    if(m_absTrayWidget.isNull())
+        return;
+
     if (event->buttons() != Qt::MouseButton::LeftButton) {
         return QWidget::mouseMoveEvent(event);
     }
@@ -246,4 +265,14 @@ void FashionTrayWidgetWrapper::setAttention(bool attention)
     m_attention = attention;
 
     Q_EMIT attentionChanged(m_attention);
+}
+
+bool FashionTrayWidgetWrapper::isDragging()
+{
+    return m_dragging;
+}
+
+void FashionTrayWidgetWrapper::cancelDragging()
+{
+    QDrag::cancel();
 }

@@ -29,17 +29,12 @@
 MultitaskingWidget::MultitaskingWidget(QWidget *parent)
     : QWidget(parent)
 {
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+    m_icon = QIcon::fromTheme(":/icons/deepin-multitasking-view.svg");
 }
 
 void MultitaskingWidget::refreshIcon()
 {
     update();
-}
-
-QSize MultitaskingWidget::sizeHint() const
-{
-    return QSize(16, 16);
 }
 
 void MultitaskingWidget::paintEvent(QPaintEvent *e)
@@ -50,9 +45,9 @@ void MultitaskingWidget::paintEvent(QPaintEvent *e)
     QPixmap icon;
 
     if (Dock::Fashion == qApp->property(PROP_DISPLAY_MODE).value<Dock::DisplayMode>()) {
-        icon = QIcon::fromTheme("deepin-multitasking-view").pixmap(size() * 0.8 * ratio);
+        icon = QIcon::fromTheme("deepin-multitasking-view", m_icon).pixmap(size() * 0.8 * ratio);
     } else {
-        icon = QIcon::fromTheme("deepin-multitasking-view").pixmap(size() * 0.7 * ratio);
+        icon = QIcon::fromTheme("deepin-multitasking-view", m_icon).pixmap(size() * 0.7 * ratio);
     }
 
     icon.setDevicePixelRatio(ratio);
@@ -61,19 +56,4 @@ void MultitaskingWidget::paintEvent(QPaintEvent *e)
     const QRectF &rf = QRectF(rect());
     const QRectF &rfp = QRectF(icon.rect());
     painter.drawPixmap(rf.center() - rfp.center() / ratio, icon);
-}
-
-void MultitaskingWidget::resizeEvent(QResizeEvent *event)
-{
-    const Dock::Position position = qApp->property(PROP_POSITION).value<Dock::Position>();
-    // 保持横纵比
-    if (position == Dock::Bottom || position == Dock::Top) {
-        setMinimumWidth(height());
-        setMinimumHeight(PLUGIN_ICON_MIN_SIZE);
-    } else {
-        setMinimumWidth(PLUGIN_ICON_MIN_SIZE);
-        setMinimumHeight(width());
-    }
-
-    QWidget::resizeEvent(event);
 }

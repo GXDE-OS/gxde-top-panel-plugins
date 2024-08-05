@@ -27,9 +27,9 @@
 namespace Dock {
 
 #define DOCK_PLUGIN_MIME    "dock/plugin"
-#define DOCK_PLUGIN_API_VERSION    "1.2.1"
 #define PLUGIN_BACKGROUND_MIN_SIZE 16
 #define PLUGIN_BACKGROUND_MAX_SIZE 1024
+#define DOCK_PLUGIN_API_VERSION    "1.2.2"
 
 #define PROP_DISPLAY_MODE   "DisplayMode"
 

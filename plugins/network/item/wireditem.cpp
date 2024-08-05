@@ -23,8 +23,9 @@
 #include "constants.h"
 #include "wireditem.h"
 #include "networkplugin.h"
-#include "../util/imageutil.h"
+#include "../frame/util/imageutil.h"
 #include "../widgets/tipswidget.h"
+#include <DGuiApplicationHelper>
 
 #include <QPainter>
 #include <QMouseEvent>
@@ -32,6 +33,7 @@
 #include <QApplication>
 
 using namespace dde::network;
+DGUI_USE_NAMESPACE
 
 WiredItem::WiredItem(WiredDevice *device)
     : DeviceItem(device),
@@ -50,9 +52,13 @@ WiredItem::WiredItem(WiredDevice *device)
     connect(m_device, static_cast<void (NetworkDevice::*)(NetworkDevice::DeviceStatus) const>(&NetworkDevice::statusChanged), this, &WiredItem::deviceStateChanged);
     connect(static_cast<WiredDevice *>(m_device.data()), &WiredDevice::connectionsChanged, this, &WiredItem::deviceStateChanged);
     connect(static_cast<WiredDevice *>(m_device.data()), &WiredDevice::activeWiredConnectionInfoChanged, this, &WiredItem::deviceStateChanged);
+    connect(DGuiApplicationHelper::instance(), &DGuiApplicationHelper::themeTypeChanged, this, [ = ] {
+        refreshIcon();
+    });
 
     QTimer::singleShot(0, this, &WiredItem::refreshTips);
     QTimer::singleShot(0, this, &WiredItem::refreshIcon);
+
 }
 
 QWidget *WiredItem::itemTips()
@@ -64,7 +70,7 @@ QWidget *WiredItem::itemTips()
 
 const QString WiredItem::itemCommand() const
 {
-    return "dbus-send --print-reply --dest=com.deepin.dde.ControlCenter /com/deepin/dde/ControlCenter com.deepin.dde.ControlCenter.ShowModule \"string:network\"";
+    return QString("dbus-send --print-reply --dest=com.deepin.dde.ControlCenter /com/deepin/dde/ControlCenter com.deepin.dde.ControlCenter.ShowPage \"string:network\" \"string:%1\"").arg(path());
 }
 
 void WiredItem::paintEvent(QPaintEvent *e)
@@ -142,9 +148,8 @@ void WiredItem::reloadIcon()
             m_delayTimer->start();
             const quint64 index = QDateTime::currentMSecsSinceEpoch() / 200;
             const int num = (index % 5) + 1;
-            m_icon = QIcon(QString(":/wired/resources/wired/network-wired-symbolic-connecting%1.svg").arg(num))
-                     .pixmap(iconSize * ratio, iconSize * ratio);
-            m_icon.setDevicePixelRatio(ratio);
+
+            m_icon = ImageUtil::loadSvg(QString("network-wired-symbolic-connecting%1.svg").arg(num), ":/wired/resources/wired/", iconSize, ratio);
             update();
             return;
         }
@@ -177,11 +182,10 @@ void WiredItem::reloadIcon()
         iconName.append("-symbolic");
 
     // 最小尺寸时采用深色图标
-    if (height() <= PLUGIN_BACKGROUND_MIN_SIZE)
+    if (height() <= PLUGIN_BACKGROUND_MIN_SIZE && DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType)
         iconName.append(PLUGIN_MIN_ICON_NAME);
 
-    m_icon = QIcon::fromTheme(iconName).pixmap(iconSize * ratio, iconSize * ratio);
-    m_icon.setDevicePixelRatio(ratio);
+    m_icon = ImageUtil::loadSvg(iconName, ":/wired/resources/wired/", iconSize, ratio);
     update();
 }
 

@@ -21,12 +21,10 @@
 
 #include "dockitemmanager.h"
 #include "item/appitem.h"
-#include "item/stretchitem.h"
 #include "item/launcheritem.h"
 #include "item/pluginsitem.h"
 #include "item/traypluginitem.h"
 #include "util/docksettings.h"
-#include "item/showdesktopitem.h"
 
 #include <QDebug>
 #include <QGSettings>
@@ -38,7 +36,6 @@ DockItemManager::DockItemManager(QObject *parent)
     , m_updatePluginsOrderTimer(new QTimer(this))
     , m_appInter(new DBusDock("com.deepin.dde.daemon.Dock", "/com/deepin/dde/daemon/Dock", QDBusConnection::sessionBus(), this))
     , m_pluginsInter(new DockPluginsController(this))
-    , m_containerItem(new ContainerItem)
 {
     //固定区域：启动器
     m_itemList.append(new LauncherItem);
@@ -71,7 +68,7 @@ DockItemManager::DockItemManager(QObject *parent)
     connect(m_pluginsInter, &DockPluginsController::pluginItemInserted, this, &DockItemManager::pluginItemInserted, Qt::QueuedConnection);
     connect(m_pluginsInter, &DockPluginsController::pluginItemRemoved, this, &DockItemManager::pluginItemRemoved, Qt::QueuedConnection);
     connect(m_pluginsInter, &DockPluginsController::pluginItemUpdated, this, &DockItemManager::itemUpdated, Qt::QueuedConnection);
-    connect(m_pluginsInter, &DockPluginsController::fashionTraySizeChanged, this, &DockItemManager::fashionTraySizeChanged, Qt::QueuedConnection);
+    connect(m_pluginsInter, &DockPluginsController::trayVisableCountChanged, this, &DockItemManager::trayVisableCountChanged, Qt::QueuedConnection);
 
     // 刷新图标
     QMetaObject::invokeMethod(this, "refershItemsIcon", Qt::QueuedConnection);
@@ -99,16 +96,6 @@ const QList<PluginsItemInterface *> DockItemManager::pluginList() const
 bool DockItemManager::appIsOnDock(const QString &appDesktop) const
 {
     return m_appInter->IsOnDock(appDesktop);
-}
-
-bool DockItemManager::itemIsInContainer(DockItem *const item) const
-{
-    return m_containerItem->contains(item);
-}
-
-void DockItemManager::setDropping(const bool dropping)
-{
-    m_containerItem->setDropping(dropping);
 }
 
 void DockItemManager::startLoadPlugins() const
@@ -155,7 +142,7 @@ void DockItemManager::itemMoved(DockItem *const sourceItem, DockItem *const targ
 
     // app move
     if (moveType == DockItem::App || moveType == DockItem::Placeholder)
-        if (replaceType != DockItem::App && replaceType != DockItem::Stretch)
+        if (replaceType != DockItem::App)
             return;
 
     // plugins move
@@ -164,10 +151,7 @@ void DockItemManager::itemMoved(DockItem *const sourceItem, DockItem *const targ
             return;
 
     const int moveIndex = m_itemList.indexOf(sourceItem);
-    const int replaceIndex = replaceType == DockItem::Stretch ?
-                             // disable insert after placeholder item
-                             m_itemList.indexOf(targetItem) - 1 :
-                             m_itemList.indexOf(targetItem);
+    const int replaceIndex = m_itemList.indexOf(targetItem);
 
     m_itemList.removeAt(moveIndex);
     m_itemList.insert(replaceIndex, sourceItem);
@@ -181,8 +165,6 @@ void DockItemManager::itemMoved(DockItem *const sourceItem, DockItem *const targ
     // for app move, index 0 is launcher item, need to pass it.
     if (moveType == DockItem::App && replaceType == DockItem::App)
         m_appInter->MoveEntry(moveIndex - 1, replaceIndex - 1);
-
-    refreshFSTItemSpliterVisible();
 }
 
 void DockItemManager::itemAdded(const QString &appDesktop, int idx)
@@ -190,63 +172,10 @@ void DockItemManager::itemAdded(const QString &appDesktop, int idx)
     m_appInter->RequestDock(appDesktop, idx);
 }
 
-void DockItemManager::itemDroppedIntoContainer(DockItem *const item)
-{
-    Q_ASSERT(item->itemType() == DockItem::Plugins || item->itemType() == DockItem::TrayPlugin);
-
-    PluginsItem *pi = static_cast<PluginsItem *>(item);
-
-    if (!pi->allowContainer())
-        return;
-    if (m_containerItem->contains(item))
-        return;
-
-    // remove from main panel
-    emit itemRemoved(item);
-    m_itemList.removeOne(item);
-
-    // add to container
-    pi->setInContainer(true);
-    m_containerItem->addItem(item);
-}
-
-void DockItemManager::itemDragOutFromContainer(DockItem *const item)
-{
-//    qDebug() << "drag out from container" << item;
-
-    // remove from container
-    m_containerItem->removeItem(item);
-
-    // insert to panel
-    switch (item->itemType()) {
-    case DockItem::Plugins:
-    case DockItem::TrayPlugin:
-        static_cast<PluginsItem *>(item)->setInContainer(false);
-        pluginItemInserted(static_cast<PluginsItem *>(item));
-        break;
-    default:                  Q_UNREACHABLE();
-    }
-}
-
-// refresh right spliter visible of fashion tray plugin item
-void DockItemManager::refreshFSTItemSpliterVisible()
-{
-    if (DockSettings::Instance().displayMode() != Dock::DisplayMode::Fashion) {
-        return;
-    }
-
-    for (int i = 0; i < m_itemList.size(); ++i) {
-        if (m_itemList.at(i)->itemType() == DockItem::ItemType::TrayPlugin) {
-            static_cast<TrayPluginItem *>(m_itemList.at(i).data())
-            ->setRightSplitVisible(i != (m_itemList.size() - 1));
-            break;
-        }
-    }
-}
-
 void DockItemManager::appItemAdded(const QDBusObjectPath &path, const int index)
 {
-    int insertIndex = 0;
+    // 第一个是启动器
+    int insertIndex = 1;
 
     // -1 for append to app list end
     if (index != -1) {
@@ -265,6 +194,12 @@ void DockItemManager::appItemAdded(const QDBusObjectPath &path, const int index)
     connect(item, &AppItem::requestCancelPreview, m_appInter, &DBusDock::CancelPreviewWindow);
 
     m_itemList.insert(insertIndex, item);
+
+    if (index != -1) {
+        emit itemInserted(insertIndex - 1, item);
+        return;
+    }
+
     emit itemInserted(insertIndex, item);
 }
 
@@ -288,6 +223,10 @@ void DockItemManager::appItemRemoved(AppItem *appItem)
 {
     emit itemRemoved(appItem);
     m_itemList.removeOne(appItem);
+
+    if (appItem->isDragging()) {
+        QDrag::cancel();
+    }
     appItem->deleteLater();
 }
 
@@ -295,16 +234,13 @@ void DockItemManager::pluginItemInserted(PluginsItem *item)
 {
     manageItem(item);
 
-    // check item is in container
-    if (item->allowContainer() && item->isInContainer()) {
-        return itemDroppedIntoContainer(item);
-    }
+    DockItem::ItemType pluginType = item->itemType();
 
     // find first plugins item position
     int firstPluginPosition = -1;
     for (int i(0); i != m_itemList.size(); ++i) {
         DockItem::ItemType type = m_itemList[i]->itemType();
-        if (type != DockItem::Plugins)
+        if (type != pluginType)
             continue;
 
         firstPluginPosition = i;
@@ -328,31 +264,34 @@ void DockItemManager::pluginItemInserted(PluginsItem *item)
             Q_ASSERT(pItem);
 
             const int sortKey = pItem->itemSortKey();
-            if (sortKey != -1 && itemSortKey > sortKey)
+            if (pluginType == DockItem::FixedPlugin) {
+                if (sortKey != -1 && itemSortKey > sortKey)
+                    continue;
+                insertIndex = i - 1;
+                break;
+            }
+            if (sortKey != -1 && itemSortKey > sortKey && pItem->itemType() != DockItem::FixedPlugin)
                 continue;
             insertIndex = i - 1;
             break;
         }
     }
 
-    if (item->itemType() == DockItem::FixedPlugin) {
+    m_itemList.insert(insertIndex, item);
+    if(pluginType == DockItem::FixedPlugin)
+    {
         insertIndex ++;
+        item->setAccessibleName("plugins");
     }
 
-    m_itemList.insert(insertIndex, item);
     emit itemInserted(insertIndex - firstPluginPosition, item);
-
-    refreshFSTItemSpliterVisible();
 }
 
 void DockItemManager::pluginItemRemoved(PluginsItem *item)
 {
     item->hidePopup();
 
-    if (m_containerItem->contains(item))
-        m_containerItem->removeItem(item);
-    else
-        emit itemRemoved(item);
+    emit itemRemoved(item);
 
     m_itemList.removeOne(item);
 }

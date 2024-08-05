@@ -3,14 +3,14 @@
 
 HoldContainer::HoldContainer(TrayPlugin *trayPlugin, QWidget *parent)
     : AbstractContainer(trayPlugin, parent)
-    , m_mainBoxLayout(new QBoxLayout(QBoxLayout::Direction::LeftToRight))
+    , m_mainBoxLayout(new QBoxLayout(QBoxLayout::Direction::LeftToRight, this))
 {
     m_mainBoxLayout->setMargin(0);
     m_mainBoxLayout->setContentsMargins(0, 0, 0, 0);
     m_mainBoxLayout->setSpacing(TraySpace);
 
     QBoxLayout *preLayout = wrapperLayout();
-    QBoxLayout *newLayout = new QBoxLayout(QBoxLayout::Direction::LeftToRight);
+    QBoxLayout *newLayout = new QBoxLayout(QBoxLayout::Direction::LeftToRight, this);
     for (int i = 0; i < preLayout->count(); ++i) {
         newLayout->addItem(preLayout->takeAt(i));
     }
@@ -43,7 +43,7 @@ void HoldContainer::refreshVisible()
 {
     AbstractContainer::refreshVisible();
 
-    setVisible(expand() || !isEmpty());
+    setVisible(true);
 }
 
 void HoldContainer::setDockPosition(const Dock::Position pos)

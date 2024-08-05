@@ -40,6 +40,7 @@
 #include <QTimeLine>
 #include <QX11Info>
 #include <QGSettings>
+#include <DGuiApplicationHelper>
 
 #define APP_DRAG_THRESHOLD      20
 
@@ -79,13 +80,10 @@ AppItem::AppItem(const QDBusObjectPath &entry, QWidget *parent)
       m_dragging(false),
 
       m_retryTimes(0),
+      m_lastclickTimes(0),
 
       m_appIcon(QPixmap()),
 
-      m_horizontalIndicator(QPixmap(":/indicator/resources/indicator.png")),
-      m_verticalIndicator(QPixmap(":/indicator/resources/indicator_ver.png")),
-      m_activeHorizontalIndicator(QPixmap(":/indicator/resources/indicator_active.png")),
-      m_activeVerticalIndicator(QPixmap(":/indicator/resources/indicator_active_ver.png")),
       m_updateIconGeometryTimer(new QTimer(this)),
       m_retryObtainIconTimer(new QTimer(this)),
 
@@ -130,6 +128,7 @@ AppItem::AppItem(const QDBusObjectPath &entry, QWidget *parent)
 
     connect(GSettingsByApp(), &QGSettings::changed, this, &AppItem::onGSettingsChanged);
     connect(GSettingsByDockApp(), &QGSettings::changed, this, &AppItem::onGSettingsChanged);
+    connect(DGuiApplicationHelper::instance(), &DGuiApplicationHelper::themeTypeChanged, this, &AppItem::onThemeTypeChanged);
 }
 
 AppItem::~AppItem()
@@ -183,6 +182,11 @@ void AppItem::setDockInfo(Dock::Position dockPosition, const QRect &dockGeometry
     }
 }
 
+QString AppItem::accessibleName()
+{
+    return m_itemEntryInter->name();
+}
+
 void AppItem::moveEvent(QMoveEvent *e)
 {
     DockItem::moveEvent(e);
@@ -211,36 +215,38 @@ void AppItem::paintEvent(QPaintEvent *e)
 
     const QRectF itemRect = rect();
 
-    // draw background
-    QRectF backgroundRect = itemRect;
-
     if (DockDisplayMode == Efficient) {
-        backgroundRect = itemRect.marginsRemoved(QMargins(1, 1, 1, 1));
+        // draw background
+        qreal min = qMin(itemRect.width(), itemRect.height());
+        QRectF backgroundRect = QRectF(itemRect.x(), itemRect.y(), min, min);
+        backgroundRect = backgroundRect.marginsRemoved(QMargins(2, 2, 2, 2));
+        backgroundRect.moveCenter(itemRect.center());
+
+        QPainterPath path;
+        path.addRoundedRect(backgroundRect, 8, 8);
 
         if (m_active) {
-            painter.fillRect(backgroundRect, QColor(44, 167, 248, 255 * 0.3));
-
-            const int activeLineWidth = itemRect.height() > 50 ? 4 : 2;
-            QRectF activeRect = backgroundRect;
-            switch (DockPosition) {
-            case Top:       activeRect.setBottom(activeRect.top() + activeLineWidth);   break;
-            case Bottom:    activeRect.setTop(activeRect.bottom() - activeLineWidth);   break;
-            case Left:      activeRect.setRight(activeRect.left() + activeLineWidth);   break;
-            case Right:     activeRect.setLeft(activeRect.right() - activeLineWidth);   break;
-            }
-
-            painter.fillRect(activeRect, QColor(44, 167, 248, 255));
+            painter.fillPath(path, QColor(0, 0, 0, 255 * 0.8));
         } else if (!m_windowInfos.isEmpty()) {
             if (hasAttention())
-                painter.fillRect(backgroundRect, QColor(241, 138, 46, 255 * .8));
+                painter.fillPath(path, QColor(241, 138, 46, 255 * .8));
             else
-                painter.fillRect(backgroundRect, QColor(255, 255, 255, 255 * 0.2));
+                painter.fillPath(path, QColor(0, 0, 0, 255 * 0.3));
         }
     } else {
         if (!m_windowInfos.isEmpty()) {
             QPoint p;
             QPixmap pixmap;
             QPixmap activePixmap;
+            if (DGuiApplicationHelper::DarkType == m_themeType) {
+                m_horizontalIndicator = QPixmap(":/indicator/resources/indicator_dark.svg");
+                m_verticalIndicator = QPixmap(":/indicator/resources/indicator_dark_ver.svg");
+            } else {
+                m_horizontalIndicator = QPixmap(":/indicator/resources/indicator.svg");
+                m_verticalIndicator = QPixmap(":/indicator/resources/indicator_ver.svg");
+            }
+            m_activeHorizontalIndicator = QPixmap(":/indicator/resources/indicator_active.svg");
+            m_activeVerticalIndicator = QPixmap(":/indicator/resources/indicator_active_ver.svg");
             switch (DockPosition) {
             case Top:
                 pixmap = m_horizontalIndicator;
@@ -291,6 +297,12 @@ void AppItem::mouseReleaseEvent(QMouseEvent *e)
         return;
     }
 
+    int curTimestamp = QX11Info::getTimestamp();
+    if ((curTimestamp - m_lastclickTimes) < 300)
+        return;
+
+    m_lastclickTimes = curTimestamp;
+
     if (e->button() == Qt::MiddleButton) {
         m_itemEntryInter->NewInstance(QX11Info::getTimestamp());
 
@@ -336,8 +348,8 @@ void AppItem::mouseMoveEvent(QMouseEvent *e)
     e->accept();
 
     // handle preview
-//    if (e->buttons() == Qt::NoButton)
-//        return showPreview();
+    //    if (e->buttons() == Qt::NoButton)
+    //        return showPreview();
 
     // handle drag
     if (e->buttons() != Qt::LeftButton)
@@ -635,7 +647,7 @@ void AppItem::playSwingEffect()
     stopSwingEffect();
 
     QPair<QGraphicsView *, QGraphicsItemAnimation *> pair =  SwingEffect(
-                                                                 this, m_appIcon, rect(), devicePixelRatioF());
+                this, m_appIcon, rect(), devicePixelRatioF());
 
     m_swingEffectView = pair.first;
     m_itemAnimation = pair.second;
@@ -682,8 +694,8 @@ void AppItem::onGSettingsChanged(const QString &key)
     }
 
     QGSettings *setting = m_itemEntryInter->isDocked()
-                          ? GSettingsByDockApp()
-                          : GSettingsByActiveApp();
+            ? GSettingsByDockApp()
+            : GSettingsByActiveApp();
 
     if (setting->keys().contains("enable")) {
         const bool isEnable = GSettingsByApp()->keys().contains("enable") && GSettingsByApp()->get("enable").toBool();
@@ -694,9 +706,15 @@ void AppItem::onGSettingsChanged(const QString &key)
 bool AppItem::checkGSettingsControl() const
 {
     QGSettings *setting = m_itemEntryInter->isDocked()
-                          ? GSettingsByDockApp()
-                          : GSettingsByActiveApp();
+            ? GSettingsByDockApp()
+            : GSettingsByActiveApp();
 
     return (setting->keys().contains("control") && setting->get("control").toBool()) ||
-           (GSettingsByApp()->keys().contains("control") && GSettingsByApp()->get("control").toBool());
+            (GSettingsByApp()->keys().contains("control") && GSettingsByApp()->get("control").toBool());
+}
+
+void AppItem::onThemeTypeChanged(DGuiApplicationHelper::ColorType themeType)
+{
+    m_themeType = themeType;
+    update();
 }

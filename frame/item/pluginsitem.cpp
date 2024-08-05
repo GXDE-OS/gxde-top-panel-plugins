@@ -38,18 +38,18 @@
 QPoint PluginsItem::MousePressPoint = QPoint();
 
 PluginsItem::PluginsItem(PluginsItemInterface *const pluginInter, const QString &itemKey, QWidget *parent)
-    : DockItem(parent),
-      m_pluginInter(pluginInter),
-      m_centralWidget(m_pluginInter->itemWidget(itemKey)),
-      m_itemKey(itemKey),
-      m_dragging(false),
-      m_hover(false)
+    : DockItem(parent)
+    , m_pluginInter(pluginInter)
+    , m_centralWidget(m_pluginInter->itemWidget(itemKey))
+    , m_itemKey(itemKey)
+    , m_dragging(false)
     , m_gsettings(nullptr)
 {
     qDebug() << "load plugins item: " << pluginInter->pluginName() << itemKey << m_centralWidget;
 
     m_centralWidget->setParent(this);
     m_centralWidget->setVisible(true);
+    m_centralWidget->setAccessibleName("centralwidget");
     m_centralWidget->installEventFilter(this);
 
     QBoxLayout *hLayout = new QHBoxLayout;
@@ -95,27 +95,6 @@ void PluginsItem::detachPluginWidget()
         widget->setParent(nullptr);
 }
 
-bool PluginsItem::allowContainer() const
-{
-    if (DockDisplayMode == Dock::Fashion)
-        return false;
-
-    return m_pluginInter->itemAllowContainer(m_itemKey);
-}
-
-bool PluginsItem::isInContainer() const
-{
-    if (DockDisplayMode == Dock::Fashion)
-        return false;
-
-    return m_pluginInter->itemIsInContainer(m_itemKey);
-}
-
-void PluginsItem::setInContainer(const bool container)
-{
-    m_pluginInter->setItemIsInContainer(m_itemKey, container);
-}
-
 QString PluginsItem::pluginName() const
 {
     return m_pluginInter->pluginName();
@@ -133,43 +112,6 @@ DockItem::ItemType PluginsItem::itemType() const
 QSize PluginsItem::sizeHint() const
 {
     return m_centralWidget->sizeHint();
-}
-
-void PluginsItem::paintEvent(QPaintEvent *event)
-{
-    Q_UNUSED(event);
-
-    if (m_draging)
-        return;
-
-    DisplayMode displayMode = m_pluginInter->displayMode();
-
-    if (displayMode == Dock::DisplayMode::Fashion) {
-        return;
-    }
-    if (!m_hover || m_dragging) {
-        return;
-    }
-
-    if (itemType() == TrayPlugin)
-        return;
-
-    // draw hover background
-    QRect destRect;
-    destRect.setSize(m_centralWidget->sizeHint());
-    destRect.moveCenter(rect().center());
-
-    QPainterPath path;
-    path.addRoundedRect(destRect, 6, 6);
-
-    QColor color;
-    color = QColor::fromRgb(255, 255, 255);
-
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setOpacity(0.1);
-
-    painter.fillPath(path, color);
 }
 
 void PluginsItem::refershIcon()
@@ -202,7 +144,7 @@ void PluginsItem::mousePressEvent(QMouseEvent *e)
     m_hover = false;
     update();
 
-    if (!isInContainer() && PopupWindow->isVisible())
+    if (PopupWindow->isVisible())
         hideNonModel();
 
     if (e->button() == Qt::LeftButton)
@@ -269,10 +211,8 @@ void PluginsItem::leaveEvent(QEvent *event)
     // here we should check the mouse position to ensure the mouse is really leaved
     // because this leaveEvent will also be called if setX11PassMouseEvent(false) is invoked
     // in XWindowTrayWidget::sendHoverEvent()
-    if (!rect().contains(mapFromGlobal(QCursor::pos()))) {
         m_hover = false;
         update();
-    }
 
     DockItem::leaveEvent(event);
 }
@@ -311,9 +251,6 @@ void PluginsItem::invokedMenuItem(const QString &itemId, const bool checked)
 
 void PluginsItem::showPopupWindow(QWidget *const content, const bool model)
 {
-    if (isInContainer())
-        return;
-
     DockItem::showPopupWindow(content, model);
 }
 
@@ -389,7 +326,6 @@ bool PluginsItem::checkGSettingsControl() const
 
 void PluginsItem::resizeEvent(QResizeEvent *event)
 {
-    setMinimumSize(m_centralWidget->minimumSize());
     setMaximumSize(m_centralWidget->maximumSize());
     return DockItem::resizeEvent(event);
 }

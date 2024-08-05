@@ -2,7 +2,7 @@
 #define ABSTRACTCONTAINER_H
 
 #include "constants.h"
-#include "trayplugin.h"
+#include "../../trayplugin.h"
 #include "../fashiontraywidgetwrapper.h"
 
 #include <QWidget>
@@ -22,9 +22,11 @@ public:
     virtual FashionTrayWidgetWrapper *takeWrapper(FashionTrayWidgetWrapper *wrapper);
     virtual void setDockPosition(const Dock::Position pos);
     virtual void setExpand(const bool expand);
-//    virtual QSize totalSize() const;
-//    QSize sizeHint() const Q_DECL_OVERRIDE;
+    virtual QSize totalSize() const;
+    virtual int itemCount();
 
+    int itemSize() {return m_itemSize;}
+    void setItemSize(int itemSize);
     void clearWrapper();
     void saveCurrentOrderToConfig();
     bool isEmpty();
@@ -72,6 +74,7 @@ private:
     Dock::Position m_dockPosition;
 
     QSize m_wrapperSize;
+    int m_itemSize = 40;
 };
 
 #endif // ABSTRACTCONTAINER_H

@@ -23,7 +23,7 @@
 #define FASHIONTRAYITEM_H
 
 #include "constants.h"
-#include "trayplugin.h"
+#include "../trayplugin.h"
 #include "fashiontraywidgetwrapper.h"
 #include "fashiontraycontrolwidget.h"
 #include "containers/normalcontainer.h"
@@ -35,7 +35,7 @@
 #include <QBoxLayout>
 #include <QLabel>
 
-#include <abstracttraywidget.h>
+#include "../abstracttraywidget.h"
 
 #define FASHION_MODE_ITEM_KEY   "fashion-mode-item"
 
@@ -66,11 +66,11 @@ protected:
     void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
     void dragEnterEvent(QDragEnterEvent *event) Q_DECL_OVERRIDE;
-//    QSize sizeHit() const Q_DECL_OVERRIDE;
+    bool event(QEvent *event) override;
 
 private:
     void init();
-    QSize wantedTotalSize() const;
+    void resizeTray();
 
 private Q_SLOTS:
     void onWrapperAttentionChanged(FashionTrayWidgetWrapper *wrapper, const bool attention);
@@ -82,8 +82,6 @@ private Q_SLOTS:
 
 private:
     QBoxLayout *m_mainBoxLayout;
-    QLabel *m_leftSpliter;
-    QLabel *m_rightSpliter;
     QTimer *m_attentionDelayTimer;
 
     TrayPlugin *m_trayPlugin;
@@ -96,9 +94,9 @@ private:
 
     static int TrayWidgetWidth;
     static int TrayWidgetHeight;
-
     QWidget *m_leftSpace;
-    QWidget *m_rightSpace;
+    Dock::Position m_dockpos;
+    int m_iconSize  = 40;
 };
 
 #endif // FASHIONTRAYITEM_H

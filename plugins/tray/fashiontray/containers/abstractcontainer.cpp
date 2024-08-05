@@ -4,7 +4,7 @@
 AbstractContainer::AbstractContainer(TrayPlugin *trayPlugin, QWidget *parent)
     : QWidget(parent),
       m_trayPlugin(trayPlugin),
-      m_wrapperLayout(new QBoxLayout(QBoxLayout::LeftToRight)),
+      m_wrapperLayout(new QBoxLayout(QBoxLayout::LeftToRight, this)),
       m_currentDraggingWrapper(nullptr),
       m_expand(true),
       m_dockPosition(Dock::Position::Bottom),
@@ -24,7 +24,6 @@ AbstractContainer::AbstractContainer(TrayPlugin *trayPlugin, QWidget *parent)
 
 void AbstractContainer::refreshVisible()
 {
-    qDebug() << this << size() << minimumSize() << maximumSize();
     if (!m_wrapperList.isEmpty()) {
         //非空保留两边边距
         if (m_dockPosition == Dock::Position::Top || m_dockPosition == Dock::Position::Bottom) {
@@ -67,7 +66,12 @@ bool AbstractContainer::removeWrapper(FashionTrayWidgetWrapper *wrapper)
 
     // do not delete real tray object, just delete it's wrapper object
     // the real tray object should be deleted in TrayPlugin class
-    w->absTrayWidget()->setParent(nullptr);
+    if (!w->absTrayWidget().isNull())
+        w->absTrayWidget()->setParent(nullptr);
+
+    if (w->isDragging()) {
+        w->cancelDragging();
+    }
     w->deleteLater();
 
     refreshVisible();
@@ -129,29 +133,49 @@ void AbstractContainer::setExpand(const bool expand)
 //    return totalSize();
 //}
 
-//QSize AbstractContainer::totalSize() const
-//{
-//    QSize size;
+void AbstractContainer::setItemSize(int itemSize)
+{
+    m_itemSize = itemSize;
 
-//    const int wrapperWidth = m_wrapperSize.width();
-//    const int wrapperHeight = m_wrapperSize.height();
+    for (auto w : wrapperList()) {
+        if (dockPosition() == Dock::Top || dockPosition() == Dock::Bottom)
+            w->setFixedSize(m_itemSize, QWIDGETSIZE_MAX);
+        else
+            w->setFixedSize(QWIDGETSIZE_MAX, m_itemSize);
+    }
+}
 
-//    if (m_dockPosition == Dock::Position::Top || m_dockPosition == Dock::Position::Bottom) {
-//        size.setWidth(
-//                    m_wrapperList.size() * wrapperWidth // 所有托盘图标
-//                    + m_wrapperList.size() * TraySpace // 所有托盘图标之间 + 一个尾部的 space
-//                    );
-//        size.setHeight(height());
-//    } else {
-//        size.setWidth(width());
-//        size.setHeight(
-//                    m_wrapperList.size() * wrapperHeight // 所有托盘图标
-//                    + m_wrapperList.size() * TraySpace // 所有托盘图标之间 + 一个尾部的 space
-//                    );
-//    }
+QSize AbstractContainer::totalSize() const
+{
+    QSize size;
 
-//    return size;
-//}
+    if (m_dockPosition == Dock::Position::Top || m_dockPosition == Dock::Position::Bottom) {
+
+        int itemSize = qBound(PLUGIN_BACKGROUND_MIN_SIZE, parentWidget()->height(), PLUGIN_BACKGROUND_MAX_SIZE);
+        if (itemSize > m_itemSize)
+            itemSize = m_itemSize;
+
+        size.setWidth(
+            (expand() ? (m_wrapperList.size() * itemSize         // 所有托盘图标
+                         + m_wrapperList.size() * TraySpace) : 0 // 所有托盘图标之间 + 一个尾部的 space
+            )           + TraySpace
+        );
+        size.setHeight(height());
+    } else {
+        int itemSize = qBound(PLUGIN_BACKGROUND_MIN_SIZE, parentWidget()->width(), PLUGIN_BACKGROUND_MAX_SIZE);
+        if (itemSize > m_itemSize)
+            itemSize = m_itemSize;
+
+        size.setWidth(width());
+        size.setHeight(
+            (expand() ? (m_wrapperList.size() * itemSize // 所有托盘图标
+                         + m_wrapperList.size() * TraySpace) : 0 // 所有托盘图标之间 + 一个尾部的 space
+            ) + TraySpace
+        );
+    }
+
+    return size;
+}
 
 void AbstractContainer::clearWrapper()
 {
@@ -176,6 +200,11 @@ void AbstractContainer::saveCurrentOrderToConfig()
 bool AbstractContainer::isEmpty()
 {
     return m_wrapperList.isEmpty();
+}
+
+int AbstractContainer::itemCount()
+{
+    return m_wrapperList.count();
 }
 
 bool AbstractContainer::containsWrapper(FashionTrayWidgetWrapper *wrapper)
@@ -310,7 +339,6 @@ void AbstractContainer::paintEvent(QPaintEvent *event)
     QWidget::paintEvent(event);
 
     QPainter p(this);
-//    p.fillRect(rect(), Qt::red);
 }
 
 void AbstractContainer::onWrapperAttentionhChanged(const bool attention)

@@ -31,12 +31,14 @@
 
 #define BORDER_MARGIN 8
 #define TITLE_MARGIN 20
+#define BTN_TITLE_MARGIN 6
 
 FloatingPreview::FloatingPreview(QWidget *parent)
     : QWidget(parent)
     , m_closeBtn3D(new DImageButton)
     , m_titleBtn(new DPushButton)
 {
+    m_closeBtn3D->setAccessibleName("closebutton-3d");
     m_closeBtn3D->setFixedSize(24, 24);
     m_closeBtn3D->setNormalPic(":/icons/resources/close_round_normal.svg");
     m_closeBtn3D->setHoverPic(":/icons/resources/close_round_hover.svg");
@@ -83,16 +85,21 @@ void FloatingPreview::trackWindow(AppSnapshot *const snap)
     m_tracked = snap;
 
     m_closeBtn3D->setVisible(m_tracked->closeAble());
-    m_titleBtn->setText(m_tracked->title());
 
     QFontMetrics fm(m_titleBtn->font());
-    int textWidth = fm.width(m_tracked->title()) + 10;
+    int textWidth = fm.width(m_tracked->title()) + 10 + BTN_TITLE_MARGIN;
     int titleWidth = width() - (TITLE_MARGIN * 2  + BORDER_MARGIN);
 
     if (textWidth  < titleWidth) {
         m_titleBtn->setFixedWidth(textWidth);
+        m_titleBtn->setText(m_tracked->title());
     } else {
-        m_titleBtn->setFixedWidth(titleWidth);
+        QString str = m_tracked->title();
+        /*某些特殊字符只显示一半 如"Q"," W"，所以加一个空格保证字符显示完整,*/
+        str.insert(0, " ");
+        QString strTtile = m_titleBtn->fontMetrics().elidedText(str, Qt::ElideRight, titleWidth - BTN_TITLE_MARGIN);
+        m_titleBtn->setText(strTtile);
+        m_titleBtn->setFixedWidth(titleWidth + BTN_TITLE_MARGIN);
     }
 
     QTimer::singleShot(0, this, [ = ] {

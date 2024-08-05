@@ -24,6 +24,7 @@
 
 #include "dbus/dbussinkinput.h"
 #include "componments/volumeslider.h"
+#include "../widgets/tipswidget.h"
 
 #include <QFrame>
 
@@ -42,9 +43,10 @@ private slots:
     void setMute();
     void setMuteIcon();
     void onPlaySoundEffect();
+    void onVolumeChanged();
 
 private:
-    void changeVolumIcon(const float volume);
+    void refreshIcon();
 
 private:
     DBusSinkInput *m_inputInter;
@@ -53,6 +55,7 @@ private:
     Dtk::Widget::DImageButton *m_volumeBtnMin;
     QLabel *m_volumeIconMax;
     VolumeSlider *m_volumeSlider;
+    TipsWidget *m_volumeLabel;
 };
 
 #endif // SINKINPUTWIDGET_H

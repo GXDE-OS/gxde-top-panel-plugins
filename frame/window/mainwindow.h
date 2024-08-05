@@ -36,6 +36,8 @@
 #include <DPlatformWindowHandle>
 #include <DWindowManagerHelper>
 #include <DBlurEffectWidget>
+#include <DGuiApplicationHelper>
+#include <DRegionMonitor>
 
 DWIDGET_USE_NAMESPACE
 
@@ -68,9 +70,8 @@ private:
     void enterEvent(QEvent *e);
     void leaveEvent(QEvent *e);
     void dragEnterEvent(QDragEnterEvent *e);
+    void mouseMoveEvent(QMouseEvent *e);
 
-    void setFixedSize(const QSize &size);
-    void internalAnimationMove(int x, int y);
     void initSNIHost();
     void initComponents();
     void initConnections();
@@ -81,18 +82,20 @@ private:
     void x11MoveWindow(const int x, const int y);
     void x11MoveResizeWindow(const int x, const int y, const int w, const int h);
     bool appIsOnDock(const QString &appDesktop);
+    void onRegionMonitorChanged();
+    void updateRegionMonitorWatch();
+    void getTrayVisableItemCount();
 
 signals:
     void panelGeometryChanged();
 
 private slots:
-    void positionChanged(const Position prevPos);
+    void positionChanged(const Position prevPos, const Position nextPos);
     void updatePosition();
     void updateGeometry();
     void clearStrutPartial();
     void setStrutPartial();
     void compositeChanged();
-    void internalMove() { internalMove(m_posChangeAni->currentValue().toPoint()); }
     void internalMove(const QPoint &p);
     void updateDisplayMode();
 
@@ -107,23 +110,22 @@ private slots:
     void onDbusNameOwnerChanged(const QString &name, const QString &oldOwner, const QString &newOwner);
     void onMainWindowSizeChanged(QPoint offset);
     void onDragFinished();
+    void themeTypeChanged(DGuiApplicationHelper::ColorType themeType);
 
-    private:
+private:
     bool m_launched;
-    bool m_updatePanelVisible;
     MainPanelControl *m_mainPanel;
 
     DPlatformWindowHandle m_platformWindowHandle;
     DWindowManagerHelper *m_wmHelper;
+    Dtk::Widget::DRegionMonitor *m_regionMonitor;
 
     QTimer *m_positionUpdateTimer;
     QTimer *m_expandDelayTimer;
     QTimer *m_leaveDelayTimer;
     QTimer *m_shadowMaskOptimizeTimer;
-    QVariantAnimation *m_sizeChangeAni;
-    QVariantAnimation *m_posChangeAni;
-    QPropertyAnimation *m_panelShowAni;
-    QPropertyAnimation *m_panelHideAni;
+    QVariantAnimation *m_panelShowAni;
+    QVariantAnimation *m_panelHideAni;
 
     XcbMisc *m_xcbMisc;
     DockSettings *m_settings;
@@ -133,6 +135,8 @@ private slots:
     QString m_sniHostService;
     QSize m_size;
     DragWidget *m_dragWidget;
+    Position m_curDockPos;
+    Position m_newDockPos;
 };
 
 #endif // MAINWINDOW_H

@@ -25,6 +25,7 @@
 
 #include <QDebug>
 #include <QDir>
+#include <QDrag>
 
 DockPluginsController::DockPluginsController(QObject *parent)
     : AbstractPluginsController(parent)
@@ -47,8 +48,8 @@ void DockPluginsController::itemAdded(PluginsItemInterface *const itemInter, con
         if (item->graphicsEffect()) {
             item->graphicsEffect()->setEnabled(false);
         }
-        connect(static_cast<TrayPluginItem *>(item), &TrayPluginItem::fashionTraySizeChanged,
-                this, &DockPluginsController::fashionTraySizeChanged, Qt::UniqueConnection);
+        connect(static_cast<TrayPluginItem *>(item), &TrayPluginItem::trayVisableCountChanged,
+                this, &DockPluginsController::trayVisableCountChanged, Qt::UniqueConnection);
     } else {
         item = new PluginsItem(itemInter, itemKey);
     }
@@ -84,6 +85,10 @@ void DockPluginsController::itemRemoved(PluginsItemInterface *const itemInter, c
 
     // do not delete the itemWidget object(specified in the plugin interface)
     item->centralWidget()->setParent(nullptr);
+
+    if (item->isDragging()) {
+        QDrag::cancel();
+    }
 
     // just delete our wrapper object(PluginsItem)
     item->deleteLater();

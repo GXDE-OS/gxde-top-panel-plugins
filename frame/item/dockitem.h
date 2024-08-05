@@ -43,10 +43,8 @@ public:
     enum ItemType {
         Launcher,
         App,
-        Stretch,
         Plugins,
         FixedPlugin,
-        Container,
         Placeholder,
         TrayPlugin,
     };
@@ -61,6 +59,7 @@ public:
     inline virtual ItemType itemType() const {Q_UNREACHABLE(); return App;}
 
     QSize sizeHint() const override;
+    virtual QString accessibleName();
 
 public slots:
     virtual void refershIcon() {}
@@ -69,6 +68,7 @@ public slots:
     void hidePopup();
     virtual void setDraging(bool bDrag);
 
+    bool isDragging();
 signals:
     void dragStarted() const;
     void itemDropped(QObject *destination, const QPoint &dropPoint) const;
@@ -83,7 +83,7 @@ protected:
     void leaveEvent(QEvent *e);
 
     const QRect perfectIconRect() const;
-    const QPoint popupMarkPoint() const;
+    const QPoint popupMarkPoint() ;
     const QPoint topleftPoint() const;
 
     void hideNonModel();

@@ -21,10 +21,13 @@
 
 #include "dockitem.h"
 #include "components/hoverhighlighteffect.h"
+#include "pluginsitem.h"
 
 #include <QMouseEvent>
 #include <QJsonObject>
 #include <QCursor>
+
+#define PLUGIN_MARGIN  10
 
 Position DockItem::DockPosition = Position::Top;
 DisplayMode DockItem::DockDisplayMode = DisplayMode::Efficient;
@@ -44,7 +47,7 @@ DockItem::DockItem(QWidget *parent)
     if (PopupWindow.isNull()) {
         DockPopupWindow *arrowRectangle = new DockPopupWindow(nullptr);
         arrowRectangle->setShadowBlurRadius(20);
-        arrowRectangle->setRadius(6);
+        arrowRectangle->setRadius(18);
         arrowRectangle->setShadowYOffset(2);
         arrowRectangle->setShadowXOffset(0);
         arrowRectangle->setArrowWidth(18);
@@ -74,6 +77,11 @@ QSize DockItem::sizeHint() const
     int size = qMin(maximumWidth(), maximumHeight());
 
     return QSize(size, size);
+}
+
+QString DockItem::accessibleName()
+{
+    return QString();
 }
 
 DockItem::~DockItem()
@@ -150,10 +158,6 @@ void DockItem::mousePressEvent(QMouseEvent *e)
     hideNonModel();
 
     if (e->button() == Qt::RightButton) {
-        if (itemType() == ItemType::Container) {
-            // ignore this event to MainPanel/MainWindow to show context menu of MainWindow
-            return e->ignore();
-        }
         if (perfectIconRect().contains(e->pos())) {
             return showContextMenu();
         }
@@ -197,13 +201,18 @@ void DockItem::leaveEvent(QEvent *e)
 const QRect DockItem::perfectIconRect() const
 {
     const QRect itemRect = rect();
-    const int iconSize = std::min(itemRect.width(), itemRect.height()) * 0.8;
-
     QRect iconRect;
-    iconRect.setWidth(iconSize);
-    iconRect.setHeight(iconSize);
-    iconRect.moveTopLeft(itemRect.center() - iconRect.center());
 
+    if (itemType() == Plugins) {
+        iconRect.setWidth(itemRect.width());
+        iconRect.setHeight(itemRect.height());
+    } else {
+        const int iconSize = std::min(itemRect.width(), itemRect.height()) * 0.8;
+        iconRect.setWidth(iconSize);
+        iconRect.setHeight(iconSize);
+    }
+
+    iconRect.moveTopLeft(itemRect.center() - iconRect.center());
     return iconRect;
 }
 
@@ -235,7 +244,7 @@ void DockItem::showContextMenu()
     hidePopup();
     emit requestWindowAutoHide(false);
 
-    m_contextMenu.exec(QCursor::pos());
+    m_contextMenu.popup(QCursor::pos());
 
     onContextMenuAccepted();
 }
@@ -271,6 +280,12 @@ void DockItem::showHoverTips()
 
 void DockItem::showPopupWindow(QWidget *const content, const bool model)
 {
+    if(itemType() == App){
+        PopupWindow->setRadius(18);
+    }else {
+        PopupWindow->setRadius(6);
+    }
+
     m_popupShown = true;
     m_lastPopupWidget = content;
 
@@ -347,19 +362,52 @@ bool DockItem::checkAndResetTapHoldGestureState()
     return ret;
 }
 
-const QPoint DockItem::popupMarkPoint() const
+const QPoint DockItem::popupMarkPoint()
 {
     QPoint p(topleftPoint());
-
-    const QRect r = rect();
-    const int offset = 2;
-    switch (DockPosition) {
-    case Top:       p += QPoint(r.width() / 2, r.height() + offset);      break;
-    case Bottom:    p += QPoint(r.width() / 2, 0 - offset);               break;
-    case Left:      p += QPoint(r.width() + offset, r.height() / 2);      break;
-    case Right:     p += QPoint(0 - offset, r.height() / 2);              break;
+    int margin = PLUGIN_MARGIN;
+    if (itemType() == Plugins){
+        PluginsItem *pluginItem = dynamic_cast<PluginsItem*>(this);
+        if (nullptr != pluginItem){
+            if (pluginItem->pluginName() == "datetime")
+                margin = 0;
+        }
     }
-
+    const QRect r = rect();
+    switch (DockPosition) {
+    case Top: {
+        if (itemType() == Plugins) {
+            p += QPoint(r.width() / 2, r.height() + margin);
+        } else {
+            p += QPoint(r.width() / 2, r.height());
+        }
+        break;
+    }
+    case Bottom: {
+        if (itemType() == Plugins) {
+            p += QPoint(r.width() / 2, 0 - margin);
+        } else {
+            p += QPoint(r.width() / 2, 0);
+        }
+        break;
+    }
+    case Left: {
+        if (itemType() == Plugins) {
+            p += QPoint(r.width() + margin, r.height() / 2);
+        } else {
+            p += QPoint(r.width(), r.height() / 2);
+        }
+        break;
+    }
+    case Right: {
+        if (itemType() == Plugins) {
+            p += QPoint(0 - margin, r.height() / 2);
+        } else {
+            p += QPoint(0, r.height() / 2);
+        }
+        break;
+        }
+    }
     return p;
 }
 
@@ -397,3 +445,9 @@ void DockItem::hideNonModel()
     if (m_popupShown && !PopupWindow->model())
         hidePopup();
 }
+
+bool DockItem::isDragging()
+{
+    return m_draging;
+}
+

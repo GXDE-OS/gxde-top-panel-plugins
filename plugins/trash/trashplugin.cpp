@@ -35,11 +35,9 @@ DWIDGET_USE_NAMESPACE
 TrashPlugin::TrashPlugin(QObject *parent)
     : QObject(parent)
     , m_trashWidget(nullptr)
-    , m_tipsLabel(new QLabel)
+    , m_tipsLabel(new TipsWidget)
 {
     m_tipsLabel->setObjectName("trash");
-    m_tipsLabel->setStyleSheet("color:white;"
-                               "padding: 0 3px;");
 }
 
 const QString TrashPlugin::pluginName() const
@@ -156,13 +154,13 @@ void TrashPlugin::pluginStateSwitched()
 
 int TrashPlugin::itemSortKey(const QString &itemKey)
 {
-    const QString &key = QString("pos_%1_%2").arg(itemKey).arg(displayMode());
-    return m_proxyInter->getValue(this, key, -1).toInt();
+    const QString &key = QString("pos_%1_%2").arg(itemKey).arg(Dock::Efficient);
+    return m_proxyInter->getValue(this, key, 7).toInt();
 }
 
 void TrashPlugin::setSortKey(const QString &itemKey, const int order)
 {
-    const QString &key = QString("pos_%1_%2").arg(itemKey).arg(displayMode());
+    const QString &key = QString("pos_%1_%2").arg(itemKey).arg(Dock::Efficient);
     m_proxyInter->saveValue(this, key, order);
 }
 
@@ -172,8 +170,23 @@ void TrashPlugin::displayModeChanged(const Dock::DisplayMode displayMode)
         return;
     }
 
-//    if (displayMode == Dock::Fashion)
     m_proxyInter->itemAdded(this, pluginName());
-//    else
-//        m_proxyInter->itemRemoved(this, pluginName());
 }
+
+void TrashPlugin::pluginSettingsChanged()
+{
+    refreshPluginItemsVisible();
+}
+
+void TrashPlugin::refreshPluginItemsVisible()
+{
+    if (pluginIsDisable()) {
+        m_proxyInter->itemRemoved(this, pluginName());
+        return;
+    }
+
+    if (m_trashWidget) {
+        m_proxyInter->itemAdded(this, pluginName());
+    }
+}
+

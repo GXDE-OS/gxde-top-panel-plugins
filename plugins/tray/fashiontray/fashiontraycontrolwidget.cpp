@@ -25,8 +25,10 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <DHiDPIHelper>
-
 #include <DStyle>
+#include <DGuiApplicationHelper>
+
+#include "../frame/util/imageutil.h"
 
 DWIDGET_USE_NAMESPACE
 
@@ -48,6 +50,10 @@ FashionTrayControlWidget::FashionTrayControlWidget(Dock::Position position, QWid
 
     setMinimumSize(PLUGIN_BACKGROUND_MIN_SIZE, PLUGIN_BACKGROUND_MIN_SIZE);
     setMaximumSize(PLUGIN_BACKGROUND_MAX_SIZE, PLUGIN_BACKGROUND_MAX_SIZE);
+
+    connect(DGuiApplicationHelper::instance(), &DGuiApplicationHelper::themeTypeChanged, this, [ = ] {
+        update();
+    });
 }
 
 void FashionTrayControlWidget::setDockPostion(Dock::Position pos)
@@ -77,24 +83,29 @@ void FashionTrayControlWidget::paintEvent(QPaintEvent *event)
 {
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setOpacity(0.5);
 
     QColor color;
-    if (m_expanded) {
-        color = QColor::fromRgb(40, 40, 40);
-        if (m_hover) {
-            color = QColor::fromRgb(60, 60, 60);
-        }
-        if (m_pressed) {
-            color = QColor::fromRgb(20, 20, 20);
-        }
-    } else {
-        color = QColor::fromRgb(255, 255, 255);
+    if (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
+        color = Qt::black;
+        painter.setOpacity(0.5);
+
         if (m_hover) {
             painter.setOpacity(0.6);
         }
+
         if (m_pressed) {
             painter.setOpacity(0.3);
+        }
+    } else {
+        color = Qt::white;
+        painter.setOpacity(0.1);
+
+        if (m_hover) {
+            painter.setOpacity(0.2);
+        }
+
+        if (m_pressed) {
+            painter.setOpacity(0.05);
         }
     }
 
@@ -104,13 +115,18 @@ void FashionTrayControlWidget::paintEvent(QPaintEvent *event)
         DStyleHelper dstyle(style());
         const int radius = dstyle.pixelMetric(DStyle::PM_FrameRadius);
 
-        path.addRoundedRect(rect(), radius, radius);
+        int minSize = std::min(width(), height());
+        QRect rc(0, 0, minSize, minSize);
+        rc.moveTo(rect().center() - rc.center());
+
+        path.addRoundedRect(rc, radius, radius);
         painter.fillPath(path, color);
     }
     // reset opacity
     painter.setOpacity(1);
 
     // draw arrow pixmap
+    refreshArrowPixmap();
     QRectF rf = QRectF(rect());
     QRectF rfp = QRectF(m_arrowPix.rect());
     QPointF p = rf.center() - rfp.center() / m_arrowPix.devicePixelRatioF();
@@ -168,23 +184,8 @@ void FashionTrayControlWidget::leaveEvent(QEvent *event)
     QWidget::leaveEvent(event);
 }
 
-QSize FashionTrayControlWidget::sizeHint() const
-{
-    return QSize(PLUGIN_BACKGROUND_MAX_SIZE, PLUGIN_BACKGROUND_MAX_SIZE);
-}
-
 void FashionTrayControlWidget::resizeEvent(QResizeEvent *event)
 {
-    const Dock::Position position = qApp->property(PROP_POSITION).value<Dock::Position>();
-    // 保持横纵比
-    if (position == Dock::Bottom || position == Dock::Top) {
-        setMaximumWidth(height());
-        setMaximumHeight(PLUGIN_BACKGROUND_MAX_SIZE);
-    } else {
-        setMaximumWidth(PLUGIN_BACKGROUND_MAX_SIZE);
-        setMaximumHeight(width());
-    }
-
     QWidget::resizeEvent(event);
 }
 
@@ -195,17 +196,18 @@ void FashionTrayControlWidget::refreshArrowPixmap()
     switch (m_dockPosition) {
     case Dock::Top:
     case Dock::Bottom:
-        iconPath = m_expanded ? ":/icons/resources/arrow_left_light.svg" : ":/icons/resources/arrow_right_dark.svg";
+        iconPath = m_expanded ? "arrow-right" : "arrow-left";
         break;
     case Dock::Left:
     case Dock::Right:
-        iconPath = m_expanded ? ":/icons/resources/arrow_up_light.svg" : ":/icons/resources/arrow_down_dark.svg";
-        break;
-    default:
+        iconPath = m_expanded ?  "arrow-down" : "arrow-up";
         break;
     }
 
-    m_arrowPix = DHiDPIHelper::loadNxPixmap(iconPath);
+    if (height() <= PLUGIN_BACKGROUND_MIN_SIZE && DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
+        iconPath.append("-dark");
+    }
 
-    update();
+    const auto ratio = devicePixelRatioF();
+    m_arrowPix = ImageUtil::loadSvg(iconPath, ":/icons/resources/", PLUGIN_ICON_MAX_SIZE, ratio);
 }

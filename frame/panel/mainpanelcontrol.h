@@ -26,8 +26,12 @@
 
 #include <QWidget>
 #include <QBoxLayout>
+#include <QLabel>
 
 using namespace Dock;
+
+class TrayPluginItem;
+class PluginsItem;
 
 class MainPanelDelegate
 {
@@ -55,6 +59,7 @@ public:
     void removePluginAreaItem(QWidget *wdg);
     void setPositonValue(Position position);
     void setDisplayMode(DisplayMode m_displayMode);
+    void getTrayVisableItemCount();
 
     MainPanelDelegate *delegate() const;
     void setDelegate(MainPanelDelegate *delegate);
@@ -77,34 +82,53 @@ private:
     void dragLeaveEvent(QDragLeaveEvent *e) override;
     void dropEvent(QDropEvent *) override;
     bool eventFilter(QObject *watched, QEvent *event) override;
+    void mousePressEvent(QMouseEvent *e) override;
 
     void startDrag(DockItem *);
     DockItem *dropTargetItem(DockItem *sourceItem, QPoint point);
     void moveItem(DockItem *sourceItem, DockItem *targetItem);
     void handleDragMove(QDragMoveEvent *e, bool isFilter);
+    void paintEvent(QPaintEvent *event) override;
+    void resizeDockIcon();
+    void calcuDockIconSize(const int w, const int h, PluginsItem *trashPlugin, PluginsItem *shutdownPlugin, PluginsItem *keyboardPlugin);
 
 public slots:
     void insertItem(const int index, DockItem *item);
     void removeItem(DockItem *item);
     void itemUpdated(DockItem *item);
 
+    // void
+    void onGSettingsChanged(const QString &key);
+    
+protected:
+    void showEvent(QShowEvent *event) override;
 private:
     QBoxLayout *m_mainPanelLayout;
     QWidget *m_fixedAreaWidget;
     QWidget *m_appAreaWidget;
     QWidget *m_trayAreaWidget;
     QWidget *m_pluginAreaWidget;
+    QWidget *m_desktopWidget;
     QBoxLayout *m_fixedAreaLayout;
     QBoxLayout *m_trayAreaLayout;
     QBoxLayout *m_pluginLayout;
     QWidget *m_appAreaSonWidget;
     QBoxLayout *m_appAreaSonLayout;
+    //    QBoxLayout *m_appAreaLayout;
     Position m_position;
     QPointer<PlaceholderItem> m_placeholderItem;
     MainPanelDelegate *m_delegate;
     QString m_draggingMimeKey;
     AppDragWidget *m_appDragWidget;
     DisplayMode m_dislayMode;
+    QLabel *m_fixedSpliter;
+    QLabel *m_appSpliter;
+    QLabel *m_traySpliter;
+    QPoint m_mousePressPos;
+    int m_trayIconCount;
+    TrayPluginItem *m_tray = nullptr;
+    bool m_isHover;//判断鼠标是否移到desktop区域
+    bool m_isEnableLaunch;//判断是否使能了com.deepin.dde.dock.module.launcher
 };
 
 #endif // MAINPANELCONTROL_H

@@ -3,7 +3,52 @@
 
 NormalContainer::NormalContainer(TrayPlugin *trayPlugin, QWidget *parent)
     : AbstractContainer(trayPlugin, parent)
+    , m_sizeAnimation(new QVariantAnimation(this))
 {
+    m_sizeAnimation->setEasingCurve(QEasingCurve::InOutCubic);
+
+    connect(m_sizeAnimation, &QVariantAnimation::valueChanged, [ = ](const QVariant & value) {
+
+        if (m_sizeAnimation->state() != QVariantAnimation::Running)
+            return;
+
+        adjustMaxSize(value.toSize());
+    });
+
+    connect(m_sizeAnimation, &QVariantAnimation::finished, [ = ]() {
+        this->setVisible(expand());
+    });
+
+    connect(DWindowManagerHelper::instance(), &DWindowManagerHelper::hasCompositeChanged, this, &NormalContainer::compositeChanged, Qt::QueuedConnection);
+
+    QTimer::singleShot(1, this, &NormalContainer::compositeChanged);
+}
+
+void NormalContainer::compositeChanged()
+{
+    int duration = DWindowManagerHelper::instance()->hasComposite() ? 300 : 1;
+    if (isEmpty())
+        duration = 0;
+
+    m_sizeAnimation->setDuration(duration);
+}
+
+QSize NormalContainer::sizeHint() const
+{
+    return totalSize();
+}
+
+void NormalContainer::resizeEvent(QResizeEvent *event)
+{
+    if (QPropertyAnimation::Stopped == m_sizeAnimation->state()) {
+        if (dockPosition() == Dock::Top || dockPosition() == Dock::Bottom)
+            setMaximumWidth(totalSize().width());
+        else {
+            setMaximumHeight(totalSize().height());
+        }
+    }
+
+    AbstractContainer::resizeEvent(event);
 }
 
 bool NormalContainer::acceptWrapper(FashionTrayWidgetWrapper *wrapper)
@@ -27,6 +72,13 @@ void NormalContainer::refreshVisible()
 {
     AbstractContainer::refreshVisible();
 
+    for (auto w : wrapperList()) {
+        if (dockPosition() == Dock::Top || dockPosition() == Dock::Bottom)
+            w->setFixedSize(itemSize(), QWIDGETSIZE_MAX);
+        else
+            w->setFixedSize(QWIDGETSIZE_MAX, itemSize());
+    }
+
     if (isEmpty()) {
         // set the minimum size to 1 to avoid can not drag back wrappers when
         // all wrappers has been drag out
@@ -36,14 +88,67 @@ void NormalContainer::refreshVisible()
         setMinimumSize(0, 0);
     }
 
-    setVisible(expand());
+    compositeChanged();
+    QSize endSize = expand() ? totalSize() : QSize(0, 0);
+
+    const QPropertyAnimation::State state = m_sizeAnimation->state();
+
+    if (state == QPropertyAnimation::Stopped && size() == endSize) {
+        setVisible(expand());
+        return;
+    }
+
+    if (state == QPropertyAnimation::Running)
+        return m_sizeAnimation->setEndValue(endSize);
+
+    m_sizeAnimation->setStartValue(size());
+    m_sizeAnimation->setEndValue(endSize);
+
+    if (isVisible() == expand()) {
+        // 非x86平台，第一次启动setEndValue时，不进QVariantAnimation::valueChanged
+        adjustMaxSize(endSize);
+        return;
+    }
+
+    if (expand()) {
+        setVisible(true);
+    }
+
+    m_sizeAnimation->start();
+}
+
+void NormalContainer::adjustMaxSize(const QSize size)
+{
+    if (dockPosition() == Dock::Top || dockPosition() == Dock::Bottom) {
+        this->setMaximumWidth(size.width());
+        this->setMaximumHeight(DOCK_MAX_SIZE);
+    } else {
+        this->setMaximumWidth(DOCK_MAX_SIZE);
+        this->setMaximumHeight(size.height());
+    }
+}
+
+int NormalContainer::itemCount()
+{
+    if (expand())
+        return AbstractContainer::itemCount();
+    else
+        return 0;
 }
 
 void NormalContainer::setExpand(const bool expand)
 {
+    int itemSize;
+
+    if (dockPosition() == Dock::Position::Top || dockPosition() == Dock::Position::Bottom)
+        itemSize = std::min(parentWidget()->height(), PLUGIN_BACKGROUND_MAX_SIZE);
+    else
+        itemSize = std::min(parentWidget()->width(), PLUGIN_BACKGROUND_MAX_SIZE);
+
     for (auto w : wrapperList()) {
-        // reset all tray item attention state
         w->setAttention(false);
+
+//        w->setFixedSize(itemSize, itemSize);
     }
 
     AbstractContainer::setExpand(expand);
@@ -168,4 +273,14 @@ int NormalContainer::whereToInsertSystemTrayByDefault(FashionTrayWidgetWrapper *
     }
 
     return insertIndex;
+}
+void NormalContainer::updateSize()
+{
+    if (QPropertyAnimation::Stopped == m_sizeAnimation->state()) {
+        if (dockPosition() == Dock::Top || dockPosition() == Dock::Bottom)
+            setMaximumWidth(totalSize().width());
+        else {
+            setMaximumHeight(totalSize().height());
+        }
+    }
 }

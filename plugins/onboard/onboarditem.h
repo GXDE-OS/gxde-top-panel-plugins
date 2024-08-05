@@ -25,6 +25,7 @@
 #include "constants.h"
 
 #include <QWidget>
+#include <QIcon>
 
 class OnboardItem : public QWidget
 {
@@ -34,7 +35,6 @@ public:
     explicit OnboardItem(QWidget *parent = nullptr);
 
 protected:
-    QSize sizeHint() const override;
     void paintEvent(QPaintEvent *e) override;
 
 private:
@@ -49,6 +49,7 @@ private:
     Dock::DisplayMode m_displayMode;
     bool m_hover;
     bool m_pressed;
+    QIcon m_icon;
 };
 
 #endif // ONBOARDITEM_H

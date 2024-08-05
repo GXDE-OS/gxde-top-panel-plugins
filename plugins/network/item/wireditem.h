@@ -29,6 +29,7 @@
 #include <QTimer>
 
 #include <WiredDevice>
+#include <QIcon>
 
 class TipsWidget;
 class WiredItem : public DeviceItem

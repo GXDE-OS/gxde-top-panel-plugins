@@ -21,8 +21,9 @@
 
 #include "wirelessitem.h"
 #include "networkplugin.h"
-#include "../util/imageutil.h"
+#include "../frame/util/imageutil.h"
 #include "../widgets/tipswidget.h"
+#include <DGuiApplicationHelper>
 
 #include <QPainter>
 #include <QMouseEvent>
@@ -30,6 +31,7 @@
 #include <QIcon>
 
 using namespace dde::network;
+DGUI_USE_NAMESPACE
 
 WirelessItem::WirelessItem(WirelessDevice *device)
     : DeviceItem(device),
@@ -52,6 +54,17 @@ WirelessItem::WirelessItem(WirelessDevice *device)
     connect(m_device, static_cast<void (NetworkDevice::*)(const QString &statStr) const>(&NetworkDevice::statusChanged), this, &WirelessItem::deviceStateChanged);
     connect(static_cast<WirelessDevice *>(m_device.data()), &WirelessDevice::activeApInfoChanged, m_refreshTimer, static_cast<void (QTimer::*)()>(&QTimer::start));
     connect(static_cast<WirelessDevice *>(m_device.data()), &WirelessDevice::activeWirelessConnectionInfoChanged, m_refreshTimer, static_cast<void (QTimer::*)()>(&QTimer::start));
+    connect(DGuiApplicationHelper::instance(), &DGuiApplicationHelper::themeTypeChanged, this, [ = ] {
+        update();
+    });
+
+    connect(static_cast<WirelessDevice *>(m_device.data()), &WirelessDevice::apInfoChanged, this, [ = ] (QJsonObject info){
+        const auto &activeApInfo = static_cast<WirelessDevice *>(m_device.data())->activeApInfo();
+        if(activeApInfo.value("Ssid").toString() == info.value("Ssid").toString()) {
+             m_activeApInfo = info;
+        }
+        update();
+    });
 
     //QMetaObject::invokeMethod(this, "init", Qt::QueuedConnection);
     QTimer::singleShot(0, this, &WirelessItem::refreshTips);
@@ -167,12 +180,11 @@ const QPixmap WirelessItem::iconPix(const Dock::DisplayMode displayMode, const i
             break;
         }
         case NetworkDevice::DeviceStatus::Activated: {
-            const auto &activeApInfo = static_cast<WirelessDevice *>(m_device.data())->activeApInfo();
-            if (activeApInfo.isEmpty()) {
+            if (m_activeApInfo.isEmpty()) {
                 strength = 100;
                 m_refreshTimer->start();
             } else {
-                strength = activeApInfo.value("Strength").toInt();
+                strength = m_activeApInfo.value("Strength").toInt();
             }
             break;
         }
@@ -196,11 +208,10 @@ const QPixmap WirelessItem::iconPix(const Dock::DisplayMode displayMode, const i
         type = "disabled";
     }
 
-    QString key = QString("wireless-%1%2")
-                  .arg(type)
-                  .arg(displayMode == Dock::Fashion ? "" : "-symbolic");
+    QString key = QString("wireless-%1-symbolic").arg(type);
 
-    if (state == NetworkDevice::DeviceStatus::Activated && !NetworkPlugin::isConnectivity()) {
+    if ((state == NetworkDevice::DeviceStatus::Activated && !NetworkPlugin::isConnectivity()) ||
+            (m_APList->isHotposActive)) {
         key = "network-wireless-offline-symbolic";
     }
 
@@ -208,7 +219,7 @@ const QPixmap WirelessItem::iconPix(const Dock::DisplayMode displayMode, const i
         key = "network-wireless-warning-symbolic";
     }
 
-    if (height() <= PLUGIN_BACKGROUND_MIN_SIZE)
+    if (height() <= PLUGIN_BACKGROUND_MIN_SIZE && DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType)
         key.append(PLUGIN_MIN_ICON_NAME);
 
     return cachedPix(key, size);
@@ -222,7 +233,7 @@ const QPixmap WirelessItem::backgroundPix(const int size)
 const QPixmap WirelessItem::cachedPix(const QString &key, const int size)
 {
     if (m_reloadIcon || !m_icons.contains(key)) {
-        m_icons.insert(key, QIcon::fromTheme(key, QIcon(":/wireless/resources/wireless/" + key + ".svg")).pixmap(size));
+        m_icons.insert(key, ImageUtil::loadSvg(key, ":/wireless/resources/wireless/", size, 1));
     }
 
     return m_icons.value(key);
@@ -268,6 +279,11 @@ void WirelessItem::refreshIcon()
 void WirelessItem::refreshTips()
 {
     if (m_device.isNull()) {
+        return;
+    }
+
+    if (m_APList->isHotposActive){
+        m_wirelessTips->setText(tr("Connected but no Internet access"));
         return;
     }
 

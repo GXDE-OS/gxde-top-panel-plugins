@@ -42,19 +42,6 @@ DWIDGET_USE_NAMESPACE
 using namespace Dock;
 using DBusDock = com::deepin::dde::daemon::Dock;
 
-class WhiteMenu : public QMenu
-{
-    Q_OBJECT
-public:
-    WhiteMenu(QWidget *parent = nullptr) : QMenu(parent)
-    {
-        QStyle *style = QStyleFactory::create("dlight");
-        if (style) setStyle(style);
-    }
-
-    virtual ~WhiteMenu() {}
-};
-
 class DockSettings : public QObject
 {
     Q_OBJECT
@@ -83,18 +70,22 @@ public:
     qreal dockRatio() const;
 
     void showDockSettingsMenu();
+    void updateFrontendGeometry();
+    
     QSize m_mainWindowSize;
     DBusDock *m_dockInter;
+    bool m_menuVisible;
 
 signals:
     void dataChanged() const;
-    void positionChanged(const Position prevPosition) const;
+    void positionChanged(const Position prevPosition, const Position nextPosition) const;
     void autoHideChanged(const bool autoHide) const;
     void displayModeChanegd() const;
     void windowVisibleChanged() const;
     void windowHideModeChanged() const;
     void windowGeometryChanged() const;
     void opacityChanged(const quint8 value) const;
+    void trayCountChanged() const;
 
 public slots:
     void updateGeometry();
@@ -102,6 +93,7 @@ public slots:
 
 private slots:
     void menuActionClicked(QAction *action);
+    void onGSettingsChanged(const QString &key);
     void onPositionChanged();
     void onDisplayModeChanged();
     void hideModeChanged();
@@ -111,7 +103,9 @@ private slots:
     void resetFrontendGeometry();
     void updateForbidPostions();
     void onOpacityChanged(const double value);
-    void onFashionTraySizeChanged(const QSize &traySize);
+    void trayVisableCountChanged(const int &count);
+    void onWindowSizeChanged();
+    void onTrashGSettingsChanged(const QString &key);
 
 private:
     DockSettings(QWidget *parent = 0);
@@ -121,6 +115,7 @@ private:
     bool test(const Position pos, const QList<QRect> &otherScreens) const;
     void calculateWindowConfig();
     void gtkIconThemeChanged();
+    void checkService();
 
 private:
     int m_dockWindowSize;
@@ -137,8 +132,8 @@ private:
     QRect m_primaryRawRect;
     QRect m_frontendRect;
 
-    WhiteMenu m_settingsMenu;
-    WhiteMenu *m_hideSubMenu;
+    QMenu m_settingsMenu;
+    QMenu *m_hideSubMenu;
     QAction m_fashionModeAct;
     QAction m_efficientModeAct;
     QAction m_topPosAct;
@@ -151,6 +146,7 @@ private:
 
     DBusDisplay *m_displayInter;
     DockItemManager *m_itemManager;
+    bool m_trashPluginShow;
 };
 
 #endif // DOCKSETTINGS_H
