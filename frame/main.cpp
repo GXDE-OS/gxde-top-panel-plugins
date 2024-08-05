@@ -63,7 +63,6 @@ int main(int argc, char *argv[])
 {
     DApplication::loadDXcbPlugin();
     DApplication app(argc, argv);
-
     app.setOrganizationName("deepin");
     app.setApplicationName("dde-dock");
     app.setApplicationDisplayName("DDE Dock");
@@ -90,7 +89,7 @@ int main(int argc, char *argv[])
     parser.process(app);
 
     if (!app.setSingleInstance(QString("dde-dock_%1").arg(getuid()))) {
-        qDebug() << "set single instance failed!";
+        qDebug() << "set single instance failed!!!!";
         return -1;
     }
 
@@ -105,8 +104,10 @@ int main(int argc, char *argv[])
     DBusDockAdaptors adaptor(&mw);
     QDBusConnection::sessionBus().registerService("com.deepin.dde.Dock");
     QDBusConnection::sessionBus().registerObject("/com/deepin/dde/Dock", "com.deepin.dde.Dock", &mw);
+    if (!QFile::exists(QDir::homePath() + "/.config/gxde/gxde-dock/dock-hide")) {
+        QTimer::singleShot(1, &mw, &MainWindow::launch);
+    }
 
-    QTimer::singleShot(1, &mw, &MainWindow::launch);
 
     if (!parser.isSet(disablePlugOption)) {
         DockItemController::instance()->startLoadPlugins();
