@@ -28,6 +28,7 @@
 #include <QWindow>
 #include <QWidget>
 #include <QX11Info>
+#include <QGSettings>
 
 #include "../widgets/tipswidget.h"
 #include "xcb/xcb_icccm.h"
@@ -116,7 +117,7 @@ void TrayPlugin::displayModeChanged(const Dock::DisplayMode mode)
         return;
     }
 
-    switchToMode(mode);
+    switchToMode(displayMode());
 }
 
 void TrayPlugin::positionChanged(const Dock::Position position)
@@ -311,6 +312,11 @@ QString TrayPlugin::itemKeyOfTrayWidget(AbstractTrayWidget *trayWidget)
     return itemKey;
 }
 
+Dock::DisplayMode TrayPlugin::displayMode()
+{
+    return Dock::DisplayMode::Fashion;
+}
+
 void TrayPlugin::initXEmbed()
 {
     connect(m_refreshXEmbedItemsTimer, &QTimer::timeout, this, &TrayPlugin::xembedItemsChanged);
@@ -403,6 +409,11 @@ void TrayPlugin::trayXEmbedAdded(const QString &itemKey, quint32 winId)
         return;
     }
 
+    QGSettings settings("com.deepin.dde.dock.module.systemtray");
+    if (settings.keys().contains("enable") && !settings.get("enable").toBool()) {
+        return;
+    }
+
     AbstractTrayWidget *trayWidget = new XEmbedTrayWidget(winId);
     addTrayWidget(itemKey, trayWidget);
 }
@@ -410,6 +421,11 @@ void TrayPlugin::trayXEmbedAdded(const QString &itemKey, quint32 winId)
 void TrayPlugin::traySNIAdded(const QString &itemKey, const QString &sniServicePath)
 {
     if (m_trayMap.contains(itemKey) || !SNITrayWidget::isSNIKey(itemKey) || m_passiveSNITrayMap.contains(itemKey)) {
+        return;
+    }
+
+    QGSettings settings("com.deepin.dde.dock.module.systemtray");
+    if (settings.keys().contains("enable") && !settings.get("enable").toBool()) {
         return;
     }
 
@@ -426,6 +442,11 @@ void TrayPlugin::traySNIAdded(const QString &itemKey, const QString &sniServiceP
 void TrayPlugin::trayIndicatorAdded(const QString &itemKey, const QString &indicatorName)
 {
     if (m_trayMap.contains(itemKey) || !IndicatorTrayWidget::isIndicatorKey(itemKey)) {
+        return;
+    }
+
+    QGSettings settings("com.deepin.dde.dock.module.systemtray");
+    if (settings.keys().contains("enable") && !settings.get("enable").toBool()) {
         return;
     }
 

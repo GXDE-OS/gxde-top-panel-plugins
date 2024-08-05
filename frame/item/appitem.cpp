@@ -39,11 +39,29 @@
 #include <QGraphicsScene>
 #include <QTimeLine>
 #include <QX11Info>
+#include <QGSettings>
 
 #define APP_DRAG_THRESHOLD      20
 
-int AppItem::IconBaseSize;
 QPoint AppItem::MousePressPos;
+
+static QGSettings *GSettingsByApp()
+{
+    static QGSettings settings("com.deepin.dde.dock.module.app");
+    return &settings;
+}
+
+static QGSettings *GSettingsByActiveApp()
+{
+    static QGSettings settings("com.deepin.dde.dock.module.activeapp");
+    return &settings;
+}
+
+static QGSettings *GSettingsByDockApp()
+{
+    static QGSettings settings("com.deepin.dde.dock.module.dockapp");
+    return &settings;
+}
 
 AppItem::AppItem(const QDBusObjectPath &entry, QWidget *parent)
     : DockItem(parent),
@@ -80,7 +98,9 @@ AppItem::AppItem(const QDBusObjectPath &entry, QWidget *parent)
     setStyleSheet("background-color: rgba(255, 255, 255, 0);");  // 任务栏启动程序时不会出现阴影
 
     setAccessibleName(m_itemEntryInter->name());
+
     setAcceptDrops(true);
+
     setLayout(centralLayout);
 
     m_id = m_itemEntryInter->id();
@@ -107,6 +127,9 @@ AppItem::AppItem(const QDBusObjectPath &entry, QWidget *parent)
 
     updateWindowInfos(m_itemEntryInter->windowInfos());
     refershIcon();
+
+    connect(GSettingsByApp(), &QGSettings::changed, this, &AppItem::onGSettingsChanged);
+    connect(GSettingsByDockApp(), &QGSettings::changed, this, &AppItem::onGSettingsChanged);
 }
 
 AppItem::~AppItem()
@@ -132,29 +155,11 @@ const bool AppItem::isValid() const
 void AppItem::updateWindowIconGeometries()
 {
     const QRect r(mapToGlobal(QPoint(0, 0)),
-                  mapToGlobal(QPoint(width(),height())));
+                  mapToGlobal(QPoint(width(), height())));
     auto *xcb_misc = XcbMisc::instance();
 
     for (auto it(m_windowInfos.cbegin()); it != m_windowInfos.cend(); ++it)
         xcb_misc->set_window_icon_geometry(it.key(), r);
-}
-
-void AppItem::setIconBaseSize(const int size)
-{
-    IconBaseSize = size;
-}
-
-int AppItem::iconBaseSize()
-{
-    return IconBaseSize;
-}
-
-int AppItem::itemBaseWidth()
-{
-    if (DockDisplayMode == Dock::Fashion)
-        return itemBaseHeight() * 1.1;
-    else
-        return itemBaseHeight() * 1.4;
 }
 
 void AppItem::undock()
@@ -189,17 +194,11 @@ void AppItem::moveEvent(QMoveEvent *e)
     m_updateIconGeometryTimer->start();
 }
 
-int AppItem::itemBaseHeight()
-{
-    if (DockDisplayMode == Efficient)
-        return IconBaseSize * 1.2;
-    else
-        return IconBaseSize * 1.5;
-}
-
 void AppItem::paintEvent(QPaintEvent *e)
 {
     DockItem::paintEvent(e);
+    if (m_draging)
+        return;
 
     if (m_dragging || (m_swingEffectView != nullptr && DockDisplayMode != Fashion))
         return;
@@ -215,18 +214,15 @@ void AppItem::paintEvent(QPaintEvent *e)
     // draw background
     QRectF backgroundRect = itemRect;
 
-    if (DockDisplayMode == Efficient)
-    {
+    if (DockDisplayMode == Efficient) {
         backgroundRect = itemRect.marginsRemoved(QMargins(1, 1, 1, 1));
 
-        if (m_active)
-        {
+        if (m_active) {
             painter.fillRect(backgroundRect, QColor(44, 167, 248, 255 * 0.3));
 
             const int activeLineWidth = itemRect.height() > 50 ? 4 : 2;
             QRectF activeRect = backgroundRect;
-            switch (DockPosition)
-            {
+            switch (DockPosition) {
             case Top:       activeRect.setBottom(activeRect.top() + activeLineWidth);   break;
             case Bottom:    activeRect.setTop(activeRect.bottom() - activeLineWidth);   break;
             case Left:      activeRect.setRight(activeRect.left() + activeLineWidth);   break;
@@ -234,24 +230,18 @@ void AppItem::paintEvent(QPaintEvent *e)
             }
 
             painter.fillRect(activeRect, QColor(44, 167, 248, 255));
-        }
-        else if (!m_windowInfos.isEmpty())
-        {
+        } else if (!m_windowInfos.isEmpty()) {
             if (hasAttention())
                 painter.fillRect(backgroundRect, QColor(241, 138, 46, 255 * .8));
             else
                 painter.fillRect(backgroundRect, QColor(255, 255, 255, 255 * 0.2));
         }
-    }
-    else
-    {
-        if (!m_windowInfos.isEmpty())
-        {
+    } else {
+        if (!m_windowInfos.isEmpty()) {
             QPoint p;
             QPixmap pixmap;
             QPixmap activePixmap;
-            switch (DockPosition)
-            {
+            switch (DockPosition) {
             case Top:
                 pixmap = m_horizontalIndicator;
                 activePixmap = m_activeHorizontalIndicator;
@@ -297,6 +287,10 @@ void AppItem::paintEvent(QPaintEvent *e)
 
 void AppItem::mouseReleaseEvent(QMouseEvent *e)
 {
+    if (checkGSettingsControl()) {
+        return;
+    }
+
     if (e->button() == Qt::MiddleButton) {
         m_itemEntryInter->NewInstance(QX11Info::getTimestamp());
 
@@ -311,7 +305,7 @@ void AppItem::mouseReleaseEvent(QMouseEvent *e)
         }
 
         qDebug() << "app item clicked, name:" << m_itemEntryInter->name()
-            << "id:" << m_itemEntryInter->id() << "my-id:" << m_id << "icon:" << m_itemEntryInter->icon();
+                 << "id:" << m_itemEntryInter->id() << "my-id:" << m_id << "icon:" << m_itemEntryInter->icon();
 
         m_itemEntryInter->Activate(QX11Info::getTimestamp());
 
@@ -323,6 +317,10 @@ void AppItem::mouseReleaseEvent(QMouseEvent *e)
 
 void AppItem::mousePressEvent(QMouseEvent *e)
 {
+    if (checkGSettingsControl()) {
+        return;
+    }
+
     m_updateIconGeometryTimer->stop();
     hidePopup();
 
@@ -356,6 +354,10 @@ void AppItem::mouseMoveEvent(QMouseEvent *e)
 
 void AppItem::wheelEvent(QWheelEvent *e)
 {
+    if (checkGSettingsControl()) {
+        return;
+    }
+
     QWidget::wheelEvent(e);
 
     if (qAbs(e->angleDelta().y()) > 20) {
@@ -372,6 +374,10 @@ void AppItem::resizeEvent(QResizeEvent *e)
 
 void AppItem::dragEnterEvent(QDragEnterEvent *e)
 {
+    if (checkGSettingsControl()) {
+        return;
+    }
+
     // ignore drag from panel
     if (e->source()) {
         return e->ignore();
@@ -388,6 +394,10 @@ void AppItem::dragEnterEvent(QDragEnterEvent *e)
 
 void AppItem::dragMoveEvent(QDragMoveEvent *e)
 {
+    if (checkGSettingsControl()) {
+        return;
+    }
+
     DockItem::dragMoveEvent(e);
 
     if (m_windowInfos.isEmpty())
@@ -423,11 +433,19 @@ void AppItem::showEvent(QShowEvent *e)
 {
     DockItem::showEvent(e);
 
+    QTimer::singleShot(0, this, [ = ] {
+        onGSettingsChanged("enable");
+    });
+
     refershIcon();
 }
 
 void AppItem::showHoverTips()
 {
+    if (checkGSettingsControl()) {
+        return;
+    }
+
     if (!m_windowInfos.isEmpty())
         return showPreview();
 
@@ -448,11 +466,14 @@ const QString AppItem::contextMenu() const
 
 QWidget *AppItem::popupTips()
 {
+    if (checkGSettingsControl()) {
+        return nullptr;
+    }
+
     if (m_dragging)
         return nullptr;
 
-    if (!m_windowInfos.isEmpty())
-    {
+    if (!m_windowInfos.isEmpty()) {
         const quint32 currentWindow = m_itemEntryInter->currentWindow();
         Q_ASSERT(m_windowInfos.contains(currentWindow));
         m_appNameTips->setText(m_windowInfos[currentWindow].title);
@@ -465,6 +486,16 @@ QWidget *AppItem::popupTips()
 
 void AppItem::startDrag()
 {
+    // 拖拽实现放到mainpanelcontrol
+
+    /*
+    if (!acceptDrops())
+        return;
+
+    if (checkGSettingsControl()) {
+        return;
+    }
+
     m_dragging = true;
     update();
 
@@ -474,7 +505,7 @@ void AppItem::startDrag()
     m_drag->setMimeData(new QMimeData);
 
     // handle drag finished here
-    connect(m_drag->appDragWidget(), &AppDragWidget::destroyed, this, [=] {
+    connect(m_drag->appDragWidget(), &AppDragWidget::destroyed, this, [ = ] {
         m_dragging = false;
         m_drag.clear();
         setVisible(true);
@@ -501,6 +532,7 @@ void AppItem::startDrag()
             m_itemEntryInter->RequestUndock();
         }
     }
+    */
 }
 
 bool AppItem::hasAttention() const
@@ -529,8 +561,7 @@ void AppItem::updateWindowInfos(const WindowInfoMap &info)
     m_updateIconGeometryTimer->start();
 
     // process attention effect
-    if (hasAttention())
-    {
+    if (hasAttention()) {
         if (DockDisplayMode == DisplayMode::Fashion)
             playSwingEffect();
     } else {
@@ -588,9 +619,9 @@ void AppItem::showPreview()
     connect(m_appPreviewTips, &PreviewContainer::requestHidePopup, this, &AppItem::hidePopup);
     connect(m_appPreviewTips, &PreviewContainer::requestCheckWindows, m_itemEntryInter, &DockEntryInter::Check);
 
-    connect(m_appPreviewTips, &PreviewContainer::requestActivateWindow, [=]() { m_appPreviewTips = nullptr; });
-    connect(m_appPreviewTips, &PreviewContainer::requestCancelPreviewWindow, [=]() { m_appPreviewTips = nullptr; });
-    connect(m_appPreviewTips, &PreviewContainer::requestHidePopup, [=]() { m_appPreviewTips = nullptr; });
+    connect(m_appPreviewTips, &PreviewContainer::requestActivateWindow, [ = ]() { m_appPreviewTips = nullptr; });
+    connect(m_appPreviewTips, &PreviewContainer::requestCancelPreviewWindow, [ = ]() { m_appPreviewTips = nullptr; });
+    connect(m_appPreviewTips, &PreviewContainer::requestHidePopup, [ = ]() { m_appPreviewTips = nullptr; });
 
     showPopupWindow(m_appPreviewTips, true);
 }
@@ -604,13 +635,13 @@ void AppItem::playSwingEffect()
     stopSwingEffect();
 
     QPair<QGraphicsView *, QGraphicsItemAnimation *> pair =  SwingEffect(
-            this, m_appIcon, rect(), devicePixelRatioF());
+                                                                 this, m_appIcon, rect(), devicePixelRatioF());
 
     m_swingEffectView = pair.first;
     m_itemAnimation = pair.second;
 
     QTimeLine *tl = m_itemAnimation->timeLine();
-    connect(tl, &QTimeLine::stateChanged, [=](QTimeLine::State newState) {
+    connect(tl, &QTimeLine::stateChanged, [ = ](QTimeLine::State newState) {
         if (newState == QTimeLine::NotRunning) {
             m_swingEffectView->hide();
             layout()->removeWidget(m_swingEffectView);
@@ -638,9 +669,34 @@ void AppItem::stopSwingEffect()
 
 void AppItem::checkAttentionEffect()
 {
-    QTimer::singleShot(1000, this, [=] {
+    QTimer::singleShot(1000, this, [ = ] {
         if (DockDisplayMode == DisplayMode::Fashion && hasAttention())
             playSwingEffect();
     });
 }
 
+void AppItem::onGSettingsChanged(const QString &key)
+{
+    if (key != "enable") {
+        return;
+    }
+
+    QGSettings *setting = m_itemEntryInter->isDocked()
+                          ? GSettingsByDockApp()
+                          : GSettingsByActiveApp();
+
+    if (setting->keys().contains("enable")) {
+        const bool isEnable = GSettingsByApp()->keys().contains("enable") && GSettingsByApp()->get("enable").toBool();
+        setVisible(isEnable && setting->get("enable").toBool());
+    }
+}
+
+bool AppItem::checkGSettingsControl() const
+{
+    QGSettings *setting = m_itemEntryInter->isDocked()
+                          ? GSettingsByDockApp()
+                          : GSettingsByActiveApp();
+
+    return (setting->keys().contains("control") && setting->get("control").toBool()) ||
+           (GSettingsByApp()->keys().contains("control") && GSettingsByApp()->get("control").toBool());
+}

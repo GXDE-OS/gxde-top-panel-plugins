@@ -27,13 +27,27 @@
 #include <QDebug>
 #include <QSvgRenderer>
 #include <QMouseEvent>
+#include <DFontSizeManager>
 
 #define PLUGIN_STATE_KEY    "enable"
+#define SHOW_DATE_MIN_HEIGHT 45
+#define TIME_FONT DFontSizeManager::instance()->t5()
+#define DATE_FONT DFontSizeManager::instance()->t10()
+
+DWIDGET_USE_NAMESPACE
 
 DatetimeWidget::DatetimeWidget(QWidget *parent)
     : QWidget(parent)
 {
+    QFontMetrics fm_time(TIME_FONT);
+    int timeHeight =  fm_time.boundingRect("88:88").height();
 
+    QFontMetrics fm_date(DATE_FONT);
+    int dateHeight =  fm_date.boundingRect("8888/88/88").height();
+
+    m_timeOffset = (timeHeight - dateHeight) / 2;
+
+    setMinimumSize(PLUGIN_BACKGROUND_MIN_SIZE, PLUGIN_BACKGROUND_MIN_SIZE);
 }
 
 void DatetimeWidget::set24HourFormat(const bool value)
@@ -44,7 +58,6 @@ void DatetimeWidget::set24HourFormat(const bool value)
 
     m_24HourFormat = value;
 
-    m_cachedTime.clear();
     update();
 
     if (isVisible()) {
@@ -54,17 +67,34 @@ void DatetimeWidget::set24HourFormat(const bool value)
 
 QSize DatetimeWidget::sizeHint() const
 {
-    QFontMetrics fm(qApp->font());
-
-    if (m_24HourFormat)
-        return fm.boundingRect("88:88").size() + QSize(20, 10);
-    else
-        return fm.boundingRect("88:88 A.A.").size() + QSize(20, 20);
+    // 最大尺寸
+    QFontMetrics fm(TIME_FONT);
+    return fm.boundingRect("88:88 A.A.").size() + QSize(20, 20);
 }
 
 void DatetimeWidget::resizeEvent(QResizeEvent *e)
 {
-    m_cachedTime.clear();
+    const Dock::Position position = qApp->property(PROP_POSITION).value<Dock::Position>();
+
+    QFontMetrics fm(TIME_FONT);
+    QString format;
+    if (m_24HourFormat)
+        format = "hh:mm";
+    else
+        format = "hh:mm AP";
+
+    QSize timeSize = fm.boundingRect(QDateTime::currentDateTime().toString(format)).size();
+    QSize dateSize = QFontMetrics(DATE_FONT).boundingRect("0000/00/00").size();
+    if (timeSize.width() < dateSize.width())
+        timeSize.setWidth(dateSize.width());
+
+    if (position == Dock::Bottom || position == Dock::Top) {
+        setMaximumWidth(timeSize.width());
+        setMaximumHeight(QWIDGETSIZE_MAX);
+    } else {
+        setMaximumWidth(QWIDGETSIZE_MAX);
+        setMaximumHeight(timeSize.height() * 2);
+    }
 
     QWidget::resizeEvent(e);
 }
@@ -73,117 +103,34 @@ void DatetimeWidget::paintEvent(QPaintEvent *e)
 {
     Q_UNUSED(e);
 
-    const auto ratio = devicePixelRatioF();
-    const Dock::DisplayMode displayMode = qApp->property(PROP_DISPLAY_MODE).value<Dock::DisplayMode>();
-    const Dock::Position position = qApp->property(PROP_POSITION).value<Dock::Position>();
     const QDateTime current = QDateTime::currentDateTime();
 
     QPainter painter(this);
     painter.setRenderHint(QPainter::Antialiasing);
 
-    if (displayMode == Dock::Efficient)
-    {
-        QString format;
-        if (m_24HourFormat)
-            format = "hh:mm";
-        else
-        {
-            if (position == Dock::Top || position == Dock::Bottom)
-                format = "hh:mm AP";
-            else
-                format = "hh:mm\nAP";
-        }
+    QString format;
+    if (m_24HourFormat)
+        format = "hh:mm";
+    else
+        format = "hh:mm AP";
 
-        painter.setPen(Qt::white);
-        painter.drawText(rect(), Qt::AlignCenter, current.time().toString(format));
-        return;
+    painter.setPen(Qt::white);
+
+    if (rect().height() > SHOW_DATE_MIN_HEIGHT) {
+        QRect timeRect = rect();
+        timeRect.setBottom(rect().center().y() + m_timeOffset);
+        painter.setFont(TIME_FONT);
+        painter.drawText(timeRect, Qt::AlignBottom | Qt::AlignHCenter, current.toString(format));
+
+        QRect dateRect = rect();
+        dateRect.setTop(timeRect.bottom());
+        format = "yyyy/MM/dd";
+        painter.setFont(DATE_FONT);
+        painter.drawText(dateRect, Qt::AlignTop | Qt::AlignHCenter, current.toString(format));
+
+    } else {
+        painter.drawText(rect(), Qt::AlignCenter, current.toString(format));
     }
-
-    // use language Chinese to fix can not find image resources which will be drawn
-    const QString currentTimeString = QLocale(QLocale::Chinese, QLocale::system().country())
-            .toString(current, m_24HourFormat ? "hhmm" : "hhmma");
-
-    // check cache valid
-    if (m_cachedTime != currentTimeString)
-    {
-        m_cachedTime = currentTimeString;
-
-        // draw new pixmap
-        m_cachedTime = currentTimeString;
-        m_cachedIcon = QPixmap(size() * ratio);
-        m_cachedIcon.fill(Qt::transparent);
-        m_cachedIcon.setDevicePixelRatio(ratio);
-        QPainter p(&m_cachedIcon);
-
-        // draw fashion mode datetime plugin
-        const int perfectIconSize = qMin(width(), height()) * 0.8;
-        const QRect r = rect();
-
-        // draw background
-        QPixmap background = loadSvg(":/icons/resources/icons/background.svg", QSize(perfectIconSize, perfectIconSize));
-        const QPoint backgroundOffset = r.center() - background.rect().center() / ratio;
-        p.drawPixmap(backgroundOffset, background);
-
-        const int bigNumHeight = perfectIconSize / 2.5;
-        const int bigNumWidth = double(bigNumHeight) * 8 / 18;
-        const int smallNumHeight = bigNumHeight / 2;
-        const int smallNumWidth = double(smallNumHeight) * 5 / 9;
-
-        // draw big num 1
-        const QString bigNum1Path = QString(":/icons/resources/icons/big%1.svg").arg(currentTimeString[0]);
-        const QPixmap bigNum1 = loadSvg(bigNum1Path, QSize(bigNumWidth, bigNumHeight));
-        const QPoint bigNum1Offset = backgroundOffset + QPoint(perfectIconSize / 2 - bigNumWidth * 2 + 1, perfectIconSize / 2 - bigNumHeight / 2);
-        p.drawPixmap(bigNum1Offset, bigNum1);
-
-        // draw big num 2
-        const QString bigNum2Path = QString(":/icons/resources/icons/big%1.svg").arg(currentTimeString[1]);
-        const QPixmap bigNum2 = loadSvg(bigNum2Path, QSize(bigNumWidth, bigNumHeight));
-        const QPoint bigNum2Offset = bigNum1Offset + QPoint(bigNumWidth + 1, 0);
-        p.drawPixmap(bigNum2Offset, bigNum2);
-
-        if (!m_24HourFormat)
-        {
-            // draw small num 1
-            const QString smallNum1Path = QString(":/icons/resources/icons/small%1.svg").arg(currentTimeString[2]);
-            const QPixmap smallNum1 = loadSvg(smallNum1Path, QSize(smallNumWidth, smallNumHeight));
-            const QPoint smallNum1Offset = bigNum2Offset + QPoint(bigNumWidth + 2, 1);
-            p.drawPixmap(smallNum1Offset, smallNum1);
-
-            // draw small num 2
-            const QString smallNum2Path = QString(":/icons/resources/icons/small%1.svg").arg(currentTimeString[3]);
-            const QPixmap smallNum2 = loadSvg(smallNum2Path, QSize(smallNumWidth, smallNumHeight));
-            const QPoint smallNum2Offset = smallNum1Offset + QPoint(smallNumWidth + 1, 0);
-            p.drawPixmap(smallNum2Offset, smallNum2);
-
-            // draw am/pm tips
-            const int tips_width = (smallNumWidth * 2 + 2) & ~0x1;
-            const int tips_height = tips_width / 2;
-
-            QPixmap tips;
-            if (current.time().hour() > 11)
-                tips = loadSvg(":/icons/resources/icons/tips-pm.svg", QSize(tips_width, tips_height));
-            else
-                tips = loadSvg(":/icons/resources/icons/tips-am.svg", QSize(tips_width, tips_height));
-
-            const QPoint tipsOffset = bigNum2Offset + QPoint(bigNumWidth + 2, bigNumHeight - tips_height);
-            p.drawPixmap(tipsOffset, tips);
-        } else {
-            // draw small num 1
-            const QString smallNum1Path = QString(":/icons/resources/icons/small%1.svg").arg(currentTimeString[2]);
-            const QPixmap smallNum1 = loadSvg(smallNum1Path, QSize(smallNumWidth, smallNumHeight));
-            const QPoint smallNum1Offset = bigNum2Offset + QPoint(bigNumWidth + 2, smallNumHeight);
-            p.drawPixmap(smallNum1Offset, smallNum1);
-
-            // draw small num 2
-            const QString smallNum2Path = QString(":/icons/resources/icons/small%1.svg").arg(currentTimeString[3]);
-            const QPixmap smallNum2 = loadSvg(smallNum2Path, QSize(smallNumWidth, smallNumHeight));
-            const QPoint smallNum2Offset = smallNum1Offset + QPoint(smallNumWidth + 1, 0);
-            p.drawPixmap(smallNum2Offset, smallNum2);
-        }
-    }
-
-    // draw cached fashion mode time item
-    painter.drawPixmap(rect().center() - m_cachedIcon.rect().center() / ratio, m_cachedIcon);
 }
 
 const QPixmap DatetimeWidget::loadSvg(const QString &fileName, const QSize size)

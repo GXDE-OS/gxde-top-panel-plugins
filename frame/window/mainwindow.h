@@ -27,6 +27,7 @@
 #include "dbus/dbusdockadaptors.h"
 #include "dbus/sni/statusnotifierwatcher_interface.h"
 #include "util/docksettings.h"
+#include "panel/mainpanelcontrol.h"
 
 #include <QWidget>
 #include <QTimer>
@@ -34,18 +35,26 @@
 
 #include <DPlatformWindowHandle>
 #include <DWindowManagerHelper>
+#include <DBlurEffectWidget>
 
+DWIDGET_USE_NAMESPACE
+
+class DragWidget;
 class MainPanel;
+class MainPanelControl;
 class DBusDockAdaptors;
-class MainWindow : public QWidget
+class MainWindow : public DBlurEffectWidget, public MainPanelDelegate
 {
     Q_OBJECT
 
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
+    void setEffectEnabled(const bool enabled);
+    void setComposite(const bool hasComposite);
 
     friend class MainPanel;
+    friend class MainPanelControl;
 
 public slots:
     void launch();
@@ -65,10 +74,13 @@ private:
     void initSNIHost();
     void initComponents();
     void initConnections();
+    void resizeMainWindow();
+    void resizeMainPanelWindow();
 
     const QPoint x11GetWindowPos();
     void x11MoveWindow(const int x, const int y);
     void x11MoveResizeWindow(const int x, const int y, const int w, const int h);
+    bool appIsOnDock(const QString &appDesktop);
 
 signals:
     void panelGeometryChanged();
@@ -82,6 +94,7 @@ private slots:
     void compositeChanged();
     void internalMove() { internalMove(m_posChangeAni->currentValue().toPoint()); }
     void internalMove(const QPoint &p);
+    void updateDisplayMode();
 
     void expand();
     void narrow(const Position prevPos);
@@ -92,11 +105,13 @@ private slots:
     void positionCheck();
 
     void onDbusNameOwnerChanged(const QString &name, const QString &oldOwner, const QString &newOwner);
+    void onMainWindowSizeChanged(QPoint offset);
+    void onDragFinished();
 
-private:
+    private:
     bool m_launched;
     bool m_updatePanelVisible;
-    MainPanel *m_mainPanel;
+    MainPanelControl *m_mainPanel;
 
     DPlatformWindowHandle m_platformWindowHandle;
     DWindowManagerHelper *m_wmHelper;
@@ -116,6 +131,8 @@ private:
     QDBusConnectionInterface *m_dbusDaemonInterface;
     org::kde::StatusNotifierWatcher *m_sniWatcher;
     QString m_sniHostService;
+    QSize m_size;
+    DragWidget *m_dragWidget;
 };
 
 #endif // MAINWINDOW_H

@@ -48,10 +48,6 @@ public:
     const QString appId() const;
     const bool isValid() const;
     void updateWindowIconGeometries();
-    static void setIconBaseSize(const int size);
-    static int iconBaseSize();
-    static int itemBaseHeight();
-    static int itemBaseWidth();
     void undock();
     QWidget *appDragWidget();
     void setDockInfo(Dock::Position dockPosition, const QRect &dockGeometry);
@@ -96,6 +92,8 @@ private slots:
     void playSwingEffect();
     void stopSwingEffect();
     void checkAttentionEffect();
+    void onGSettingsChanged(const QString& key);
+    bool checkGSettingsControl() const;
 
 private:
     TipsWidget *m_appNameTips;
@@ -127,7 +125,6 @@ private:
     QFutureWatcher<QPixmap> *m_smallWatcher;
     QFutureWatcher<QPixmap> *m_largeWatcher;
 
-    static int IconBaseSize;
     static QPoint MousePressPos;
 };
 

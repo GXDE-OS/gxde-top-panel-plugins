@@ -28,7 +28,13 @@
 #include <QDrag>
 #include <QMimeData>
 
+#include <DStyle>
+
+#include "constants.h"
+
 #define TRAY_ITEM_DRAG_THRESHOLD 20
+
+DWIDGET_USE_NAMESPACE
 
 FashionTrayWidgetWrapper::FashionTrayWidgetWrapper(const QString &itemKey, AbstractTrayWidget *absTrayWidget, QWidget *parent)
     : QWidget(parent),
@@ -56,6 +62,8 @@ FashionTrayWidgetWrapper::FashionTrayWidgetWrapper(const QString &itemKey, Abstr
 
     connect(m_absTrayWidget, &AbstractTrayWidget::needAttention, this, &FashionTrayWidgetWrapper::onTrayWidgetNeedAttention);
     connect(m_absTrayWidget, &AbstractTrayWidget::clicked, this, &FashionTrayWidgetWrapper::onTrayWidgetClicked);
+
+    setMinimumSize(PLUGIN_BACKGROUND_MIN_SIZE, PLUGIN_BACKGROUND_MIN_SIZE);
 }
 
 AbstractTrayWidget *FashionTrayWidgetWrapper::absTrayWidget() const
@@ -76,21 +84,31 @@ void FashionTrayWidgetWrapper::paintEvent(QPaintEvent *event)
         return;
     }
 
-    QPainter painter(this);
-    painter.setRenderHint(QPainter::Antialiasing, true);
-    painter.setOpacity(0.5);
+    if (rect().height() > PLUGIN_BACKGROUND_MIN_SIZE) {
+        QPainter painter(this);
+        painter.setRenderHint(QPainter::Antialiasing, true);
+        painter.setOpacity(0.5);
 
-    QColor color = QColor::fromRgb(40, 40, 40);;
-    if (m_hover) {
-        color = QColor::fromRgb(60, 60, 60);
-    }
-    if (m_pressed) {
-        color = QColor::fromRgb(20, 20, 20);
-    }
+        QColor color = QColor::fromRgb(40, 40, 40);;
+        if (m_hover) {
+            color = QColor::fromRgb(60, 60, 60);
+        }
+        if (m_pressed) {
+            color = QColor::fromRgb(20, 20, 20);
+        }
 
-    QPainterPath path;
-    path.addRoundedRect(rect(), 10, 10);
-    painter.fillPath(path, color);
+        DStyleHelper dstyle(style());
+        const int radius = dstyle.pixelMetric(DStyle::PM_FrameRadius);
+
+        QPainterPath path;
+
+        int minSize = std::min(width(), height());
+        QRect rc(0, 0, minSize, minSize);
+        rc.moveTo(rect().center() - rc.center());
+
+        path.addRoundedRect(rc, radius, radius);
+        painter.fillPath(path, color);
+    }
 }
 
 void FashionTrayWidgetWrapper::mousePressEvent(QMouseEvent *event)
@@ -151,6 +169,26 @@ void FashionTrayWidgetWrapper::leaveEvent(QEvent *event)
     }
 
     QWidget::leaveEvent(event);
+}
+
+QSize FashionTrayWidgetWrapper::sizeHint() const
+{
+    return QSize(PLUGIN_BACKGROUND_MAX_SIZE, PLUGIN_BACKGROUND_MAX_SIZE);
+}
+
+void FashionTrayWidgetWrapper::resizeEvent(QResizeEvent *event)
+{
+    const Dock::Position position = qApp->property(PROP_POSITION).value<Dock::Position>();
+    // 保持横纵比
+    if (position == Dock::Bottom || position == Dock::Top) {
+        setMaximumWidth(height());
+        setMaximumHeight(QWIDGETSIZE_MAX);
+    } else {
+        setMaximumHeight(width());
+        setMaximumWidth(QWIDGETSIZE_MAX);
+    }
+
+    QWidget::resizeEvent(event);
 }
 
 void FashionTrayWidgetWrapper::handleMouseMove(QMouseEvent *event)

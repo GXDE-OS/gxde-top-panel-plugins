@@ -29,12 +29,12 @@
 #include <QFrame>
 #include <QPointer>
 #include <QGestureEvent>
+#include <QMenu>
 
 #include <memory>
 
 using namespace Dock;
 
-class DBusMenuManager;
 class DockItem : public QWidget
 {
     Q_OBJECT
@@ -45,6 +45,7 @@ public:
         App,
         Stretch,
         Plugins,
+        FixedPlugin,
         Container,
         Placeholder,
         TrayPlugin,
@@ -59,11 +60,14 @@ public:
 
     inline virtual ItemType itemType() const {Q_UNREACHABLE(); return App;}
 
+    QSize sizeHint() const override;
+
 public slots:
     virtual void refershIcon() {}
 
-    void showPopupApplet(QWidget * const applet);
+    void showPopupApplet(QWidget *const applet);
     void hidePopup();
+    virtual void setDraging(bool bDrag);
 
 signals:
     void dragStarted() const;
@@ -84,7 +88,7 @@ protected:
 
     void hideNonModel();
     void popupWindowAccept();
-    virtual void showPopupWindow(QWidget * const content, const bool model = false);
+    virtual void showPopupWindow(QWidget *const content, const bool model = false);
     virtual void showHoverTips();
     virtual void invokedMenuItem(const QString &itemId, const bool checked);
     virtual const QString contextMenu() const;
@@ -99,19 +103,20 @@ protected slots:
 
 private:
     void updatePopupPosition();
+    void menuActionClicked(QAction *action);
 
 protected:
     bool m_hover;
     bool m_popupShown;
     bool m_tapAndHold;
+    bool m_draging;
+    QMenu m_contextMenu;
 
     QPointer<QWidget> m_lastPopupWidget;
     QPointer<HoverHighlightEffect> m_hoverEffect;
 
     QTimer *m_popupTipsDelayTimer;
     QTimer *m_popupAdjustDelayTimer;
-
-    DBusMenuManager *m_menuManagerInter;
 
     static Position DockPosition;
     static DisplayMode DockDisplayMode;

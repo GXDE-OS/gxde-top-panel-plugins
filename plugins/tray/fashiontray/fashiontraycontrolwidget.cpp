@@ -26,6 +26,8 @@
 #include <QPainterPath>
 #include <DHiDPIHelper>
 
+#include <DStyle>
+
 DWIDGET_USE_NAMESPACE
 
 #define ExpandedKey "fashion-tray-expanded"
@@ -43,6 +45,9 @@ FashionTrayControlWidget::FashionTrayControlWidget(Dock::Position position, QWid
 
     setDockPostion(m_dockPosition);
     setExpanded(m_expanded);
+
+    setMinimumSize(PLUGIN_BACKGROUND_MIN_SIZE, PLUGIN_BACKGROUND_MIN_SIZE);
+    setMaximumSize(PLUGIN_BACKGROUND_MAX_SIZE, PLUGIN_BACKGROUND_MAX_SIZE);
 }
 
 void FashionTrayControlWidget::setDockPostion(Dock::Position pos)
@@ -95,9 +100,13 @@ void FashionTrayControlWidget::paintEvent(QPaintEvent *event)
 
     // draw background
     QPainterPath path;
-    path.addRoundedRect(rect(), 10, 10);
-    painter.fillPath(path, color);
+    if (rect().height() > PLUGIN_BACKGROUND_MIN_SIZE) {
+        DStyleHelper dstyle(style());
+        const int radius = dstyle.pixelMetric(DStyle::PM_FrameRadius);
 
+        path.addRoundedRect(rect(), radius, radius);
+        painter.fillPath(path, color);
+    }
     // reset opacity
     painter.setOpacity(1);
 
@@ -157,6 +166,26 @@ void FashionTrayControlWidget::leaveEvent(QEvent *event)
     update();
 
     QWidget::leaveEvent(event);
+}
+
+QSize FashionTrayControlWidget::sizeHint() const
+{
+    return QSize(PLUGIN_BACKGROUND_MAX_SIZE, PLUGIN_BACKGROUND_MAX_SIZE);
+}
+
+void FashionTrayControlWidget::resizeEvent(QResizeEvent *event)
+{
+    const Dock::Position position = qApp->property(PROP_POSITION).value<Dock::Position>();
+    // 保持横纵比
+    if (position == Dock::Bottom || position == Dock::Top) {
+        setMaximumWidth(height());
+        setMaximumHeight(PLUGIN_BACKGROUND_MAX_SIZE);
+    } else {
+        setMaximumWidth(PLUGIN_BACKGROUND_MAX_SIZE);
+        setMaximumHeight(width());
+    }
+
+    QWidget::resizeEvent(event);
 }
 
 void FashionTrayControlWidget::refreshArrowPixmap()

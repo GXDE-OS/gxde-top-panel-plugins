@@ -47,9 +47,8 @@ private:
     const QPixmap loadSvg(const QString &fileName, const QSize size);
 
 private:
-    QPixmap m_cachedIcon;
-    QString m_cachedTime;
     bool m_24HourFormat;
+    int m_timeOffset;
 };
 
 #endif // DATETIMEWIDGET_H

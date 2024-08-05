@@ -58,7 +58,6 @@ public:
 
 public slots:
     void onExpandChanged(const bool expand);
-    void setSuggestIconSize(QSize size);
     void setRightSplitVisible(const bool visible);
     void onPluginSettingsChanged();
 
@@ -67,7 +66,7 @@ protected:
     void hideEvent(QHideEvent *event) Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent *event) Q_DECL_OVERRIDE;
     void dragEnterEvent(QDragEnterEvent *event) Q_DECL_OVERRIDE;
-    QSize sizeHint() const Q_DECL_OVERRIDE;
+//    QSize sizeHit() const Q_DECL_OVERRIDE;
 
 private:
     void init();
@@ -80,7 +79,6 @@ private Q_SLOTS:
     void requestResize();
     void refreshHoldContainerPosition();
     void onRequireDraggingWrapper();
-    void onContainerDraggingStateChanged(FashionTrayWidgetWrapper *wrapper, const bool dragging);
 
 private:
     QBoxLayout *m_mainBoxLayout;
@@ -98,6 +96,9 @@ private:
 
     static int TrayWidgetWidth;
     static int TrayWidgetHeight;
+
+    QWidget *m_leftSpace;
+    QWidget *m_rightSpace;
 };
 
 #endif // FASHIONTRAYITEM_H
