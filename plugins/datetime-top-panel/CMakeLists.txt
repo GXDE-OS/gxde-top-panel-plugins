@@ -1,5 +1,5 @@
-
-set(PLUGIN_NAME "datetime")
+# 专门为顶栏定制的
+set(PLUGIN_NAME "datetime-top-panel")
 
 project(${PLUGIN_NAME})
 
@@ -23,6 +23,6 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
   ${Qt5Svg_LIBRARIES}
 )
 
-install(TARGETS ${PLUGIN_NAME} LIBRARY DESTINATION lib/dde-dock/plugins)
-#install(TARGETS ${PLUGIN_NAME} LIBRARY DESTINATION lib/dde-top-panel/plugins)
-#install(TARGETS ${PLUGIN_NAME} LIBRARY DESTINATION lib/gxde-top-panel/plugins)
+#install(TARGETS ${PLUGIN_NAME} LIBRARY DESTINATION lib/dde-dock/plugins)
+install(TARGETS ${PLUGIN_NAME} LIBRARY DESTINATION lib/dde-top-panel/plugins)
+install(TARGETS ${PLUGIN_NAME} LIBRARY DESTINATION lib/gxde-top-panel/plugins)
