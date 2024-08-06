@@ -2,6 +2,8 @@
 add_subdirectory("datetime")
 add_subdirectory("datetime-top-panel")
 #add_subdirectory("disk-mount")
+add_subdirectory("dde-mpris2-plugin")
+add_subdirectory("dde-sys-monitor-plugin")
 add_subdirectory("network")
 add_subdirectory("shutdown")
 add_subdirectory("power")
