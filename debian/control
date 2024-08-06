@@ -44,18 +44,6 @@ Replaces:
 Description: deepin desktop-environment - dock module
  Deepin desktop environment - dock module.
 
-Package: dde-dock-dev
-Architecture: all
-Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: deepin desktop-environment - dock module development files
- Deepin desktop environment - dock module development files.
-
-Package: dde-dock-onboard-plugin
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, onboard
-Description: deepin desktop-environment - dock plugin
- Deepin desktop environment - dock plugin for onboard
-
 Package: gxde-top-panel-plugin
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
