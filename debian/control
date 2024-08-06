@@ -1,4 +1,4 @@
-Source: dde-dock
+Source: gxde-top-panel-plugins
 Section: x11
 Priority: optional
 Maintainer: Deepin Packages Builder <packages@deepin.com>
@@ -31,12 +31,12 @@ Standards-Version: 3.9.8
 Homepage: http://www.deepin.org/
 
 
-Package: gxde-top-panel-plugin
+Package: gxde-top-panel-plugins
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: deepin desktop-environment - dock plugin for gxde top panel
  
-Package: dde-top-panel-plugin
+Package: dde-top-panel-plugins
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: deepin desktop-environment - dock plugin for dde top panel
