@@ -30,19 +30,6 @@ Build-Depends: debhelper (>= 8.0.0),
 Standards-Version: 3.9.8
 Homepage: http://www.deepin.org/
 
-Package: dde-dock
-Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, deepin-menu
-Recommends: dde-disk-mount-plugin, dde-dock-onboard-plugin
-Conflicts:
- dde-workspace (<< 2.90.5),
- dde-dock-applets,
- dde-trash-plugin
-Replaces:
- dde-dock-applets,
- dde-trash-plugin
-Description: deepin desktop-environment - dock module
- Deepin desktop environment - dock module.
 
 Package: gxde-top-panel-plugin
 Architecture: any
