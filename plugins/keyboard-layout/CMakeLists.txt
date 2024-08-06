@@ -33,4 +33,7 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
 )
 
 install(TARGETS ${PLUGIN_NAME} LIBRARY DESTINATION lib/dde-dock/plugins)
+install(TARGETS ${PLUGIN_NAME} LIBRARY DESTINATION lib/dde-top-panel/plugins)
+install(TARGETS ${PLUGIN_NAME} LIBRARY DESTINATION lib/gxde-top-panel/plugins)
 install(FILES ./keybord_layout.json DESTINATION /etc/dde-dock/indicator)
+

@@ -55,3 +55,13 @@ Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}, onboard
 Description: deepin desktop-environment - dock plugin
  Deepin desktop environment - dock plugin for onboard
+
+Package: gxde-top-panel-plugin
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: deepin desktop-environment - dock plugin for gxde top panel
+ 
+Package: dde-top-panel-plugin
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: deepin desktop-environment - dock plugin for dde top panel
