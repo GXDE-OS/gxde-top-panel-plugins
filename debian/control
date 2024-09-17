@@ -3,6 +3,8 @@ Section: x11
 Priority: optional
 Maintainer: Deepin Packages Builder <packages@deepin.com>
 Build-Depends: debhelper (>= 8.0.0),
+ qttools5-dev,
+ qttools5-dev-tools,
  pkg-config,
  qt5-qmake,
  libxcb-image0-dev,
