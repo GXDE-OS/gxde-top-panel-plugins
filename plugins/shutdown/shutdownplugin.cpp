@@ -26,6 +26,9 @@
 #include <QSettings>
 
 #define PLUGIN_STATE_KEY    "enable"
+#define CHROOTCHECKDESTINATION "com.gxde.daemon.system.info"
+#define CHROOTCHECKPATH "/com/gxde/daemon/system/info"
+#define CHROOTCHECKINTERFACE "com.gxde.daemon.system.info"
 
 ShutdownPlugin::ShutdownPlugin(QObject *parent)
     : QObject(parent),
@@ -36,6 +39,13 @@ ShutdownPlugin::ShutdownPlugin(QObject *parent)
 
 {
     m_tipsLabel->setVisible(false);
+    // 判断是否在 Chroot 下运行，如果是则不显示
+    QDBusMessage checkChrootDBus = QDBusMessage::createMethodCall(CHROOTCHECKDESTINATION,
+                     CHROOTCHECKPATH,
+                     CHROOTCHECKINTERFACE,
+                     "IsInChroot");
+    QDBusMessage res = QDBusConnection::sessionBus().call(checkChrootDBus);
+    m_isInChroot = res.arguments().at(0).toBool();
 }
 
 const QString ShutdownPlugin::pluginName() const
@@ -90,6 +100,9 @@ void ShutdownPlugin::pluginStateSwitched()
 
 bool ShutdownPlugin::pluginIsDisable()
 {
+    if (m_isInChroot) {
+        return 1;
+    }
     return !m_proxyInter->getValue(this, PLUGIN_STATE_KEY, true).toBool();
 }
 

@@ -106,6 +106,7 @@ private:
 
 private:
     bool m_pluginLoaded;
+    bool m_isInChroot;
 
     ShutdownWidget *m_shutdownWidget;
     TipsWidget *m_tipsLabel;
