@@ -3,15 +3,15 @@ set -e
 
 if [ "$1" = configure ]; then
 	if command -v setcap > /dev/null; then
-		if setcap cap_ipc_lock+eip /usr/bin/dde-dock;then
-			chmod u-s /usr/bin/dde-dock
+		if setcap cap_ipc_lock+eip /usr/bin/gxde-dock;then
+			chmod u-s /usr/bin/gxde-dock
 		else
 			echo "Setcap failed, falling back to setuid" >&2
-			chmod u+s /usr/bin/dde-dock
+			chmod u+s /usr/bin/gxde-dock
 		fi
 	else
 		echo "Setcap is not installed, falling back to setuid" >&2
-		chmod u+s /usr/bin/dde-dock
+		chmod u+s /usr/bin/gxde-dock
 	fi  
 fi
 

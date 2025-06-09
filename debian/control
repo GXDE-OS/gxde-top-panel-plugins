@@ -36,7 +36,7 @@ Homepage: http://www.deepin.org/
 Package: gxde-top-panel-plugins
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: deepin desktop-environment - dock plugin for gxde top panel
+Description: gxde desktop-environment - dock plugin for gxde top panel
  
 Package: dde-top-panel-plugins
 Architecture: any
