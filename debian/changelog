@@ -1,4 +1,4 @@
-gxde-top-panel-plugins (5.1.2-1) UNRELEASED; urgency=medium
+gxde-top-panel-plugins (5.1.2-2) UNRELEASED; urgency=medium
 
   * Support hide dde dock 
   * chroot 下不显示电源按钮
