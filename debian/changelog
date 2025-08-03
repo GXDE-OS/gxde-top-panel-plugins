@@ -3,6 +3,7 @@ gxde-top-panel-plugins (5.2.0) UNRELEASED; urgency=medium
   * Support hide dde dock 
   * chroot 下不显示电源按钮
   * dde-dock=>gxde-dock
+  * 依赖修改为 libgxframeworkdbus2
   * 新增应用托盘
 
  -- gfdgd_xi <3025613752@qq.com>  Sun, 03 Aug 2025 14:41:06 +0800
