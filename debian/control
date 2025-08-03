@@ -1,7 +1,7 @@
 Source: gxde-top-panel-plugins
 Section: x11
 Priority: optional
-Maintainer: Deepin Packages Builder <packages@deepin.com>
+Maintainer: gfdgd xi <3025613752@qq.com>
 Build-Depends: debhelper (>= 8.0.0),
  qttools5-dev,
  qttools5-dev-tools,
@@ -35,10 +35,10 @@ Homepage: http://www.deepin.org/
 
 Package: gxde-top-panel-plugins
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, gxde-desktop-schemas (>= 4.0.2)
 Description: gxde desktop-environment - dock plugin for gxde top panel
  
 Package: dde-top-panel-plugins
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends}, ${misc:Depends}, gxde-desktop-schemas (>= 4.0.2)
 Description: deepin desktop-environment - dock plugin for dde top panel

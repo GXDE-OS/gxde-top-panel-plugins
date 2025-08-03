@@ -29,17 +29,19 @@
 #include <QMouseEvent>
 #include <DFontSizeManager>
 #include <DGuiApplicationHelper>
+#include <QScreen>
 
 #define PLUGIN_STATE_KEY    "enable"
-#define TIME_FONT DFontSizeManager::instance()->t4()
-#define DATE_FONT DFontSizeManager::instance()->t10()
+#define TIME_FONT DFontSizeManager::instance()->t1()
+#define DATE_FONT DFontSizeManager::instance()->t11()
 
 DWIDGET_USE_NAMESPACE
 
 DatetimeWidget::DatetimeWidget(QWidget *parent)
     : QWidget(parent)
 {
-    setMinimumSize(PLUGIN_BACKGROUND_MIN_SIZE, PLUGIN_BACKGROUND_MIN_SIZE);
+    float ratio = QApplication::primaryScreen()->devicePixelRatio();
+    setMinimumSize(PLUGIN_BACKGROUND_MIN_SIZE * ratio, PLUGIN_BACKGROUND_MIN_SIZE * 1.9 * ratio);
 }
 
 void DatetimeWidget::set24HourFormat(const bool value)
