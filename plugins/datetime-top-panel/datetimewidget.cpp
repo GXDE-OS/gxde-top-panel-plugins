@@ -40,8 +40,7 @@ DWIDGET_USE_NAMESPACE
 DatetimeWidget::DatetimeWidget(QWidget *parent)
     : QWidget(parent)
 {
-    float ratio = QApplication::primaryScreen()->devicePixelRatio();
-    setMinimumSize(PLUGIN_BACKGROUND_MIN_SIZE * ratio, PLUGIN_BACKGROUND_MIN_SIZE * 1.9 * ratio);
+    setMinimumSize(PLUGIN_BACKGROUND_MIN_SIZE, PLUGIN_BACKGROUND_MIN_SIZE);
 }
 
 void DatetimeWidget::set24HourFormat(const bool value)
