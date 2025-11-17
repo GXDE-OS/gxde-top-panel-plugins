@@ -32,8 +32,8 @@
 #include <QScreen>
 
 #define PLUGIN_STATE_KEY    "enable"
-#define TIME_FONT DFontSizeManager::instance()->t1()
-#define DATE_FONT DFontSizeManager::instance()->t11()
+#define TIME_FONT DFontSizeManager::instance()->t4()
+#define DATE_FONT DFontSizeManager::instance()->t10()
 
 DWIDGET_USE_NAMESPACE
 
