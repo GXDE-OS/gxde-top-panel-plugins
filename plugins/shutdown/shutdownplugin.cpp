@@ -55,7 +55,7 @@ const QString ShutdownPlugin::pluginName() const
 
 const QString ShutdownPlugin::pluginDisplayName() const
 {
-    return tr("Power");
+    return tr("Shutdown");
 }
 
 QWidget *ShutdownPlugin::itemWidget(const QString &itemKey)

@@ -196,6 +196,11 @@ void SoundItem::refreshIcon()
 
     m_iconPixmap = ImageUtil::loadSvg(iconString, ":/", iconSize, ratio);
 
+    iconSize = PLUGIN_ICON_MAX_SIZE * 0.8;
+    const QIcon icon = QIcon::fromTheme(iconString);
+    m_iconPixmap = icon.pixmap(iconSize * ratio, iconSize * ratio);
+    m_iconPixmap.setDevicePixelRatio(ratio);
+
     update();
 }
 
