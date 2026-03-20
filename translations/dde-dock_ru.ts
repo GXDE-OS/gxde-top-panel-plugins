@@ -175,7 +175,7 @@
 <context>
     <name>OnboardPlugin</name>
     <message>
-        <source>Onboard</source>
+        <source>Virtual Keyboard</source>
         <translation>Экранная Клавиатура</translation>
     </message>
     <message>

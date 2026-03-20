@@ -33,18 +33,18 @@ OnboardPlugin::OnboardPlugin(QObject *parent)
       m_startupState(false),
       m_tipsLabel(new TipsWidget)
 {
-    m_tipsLabel->setText(tr("Onboard"));
+    m_tipsLabel->setText(tr("Virtual Keyboard"));
     m_tipsLabel->setVisible(false);
 }
 
 const QString OnboardPlugin::pluginName() const
 {
-    return "onboard";
+    return "keyboard";
 }
 
 const QString OnboardPlugin::pluginDisplayName() const
 {
-    return tr("Onboard");
+    return tr("Virtual Keyboard");
 }
 
 QWidget *OnboardPlugin::itemWidget(const QString &itemKey)
@@ -86,6 +86,10 @@ const QString OnboardPlugin::itemCommand(const QString &itemKey)
 {
     Q_UNUSED(itemKey);
 
+    if (QFile::exists("/usr/bin/kylin-virtual-keyboard")) {
+        // 如果存在麒麟虚拟键盘，则默认使用该键盘
+        return QString("dbus-send --print-reply --dest=org.fcitx.Fcitx5 /virtualkeyboard org.fcitx.Fcitx.VirtualKeyboard1.ToggleVirtualKeyboard");
+    }
     return QString("dbus-send --print-reply --dest=org.onboard.Onboard /org/onboard/Onboard/Keyboard org.onboard.Onboard.Keyboard.ToggleVisible");
 }
 
@@ -96,7 +100,7 @@ const QString OnboardPlugin::itemContextMenu(const QString &itemKey)
     QMap<QString, QVariant> onboardSettings;
     onboardSettings["itemId"] = "onboard-settings";
     onboardSettings["itemText"] = tr("Settings");
-    onboardSettings["isActive"] = true;
+    onboardSettings["isActive"] = !QFile::exists("/usr/bin/kylin-virtual-keyboard");
     items.push_back(onboardSettings);
 
     QMap<QString, QVariant> menu;
