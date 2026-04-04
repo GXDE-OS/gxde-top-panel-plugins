@@ -70,7 +70,7 @@ QWidget *WiredItem::itemTips()
 
 const QString WiredItem::itemCommand() const
 {
-    return QString("dbus-send --print-reply --dest=com.deepin.dde.ControlCenter /com/deepin/dde/ControlCenter com.deepin.dde.ControlCenter.ShowPage \"string:network\" \"string:%1\"").arg(path());
+    return QString("dbus-send --print-reply --dest=com.deepin.dde.ControlCenter /com/deepin/dde/ControlCenter com.deepin.dde.ControlCenter.ShowPage \"string:network\" \"string:\"\"");//修复点击有线网络图标但跳转到无线网络设置页的问题
 }
 
 void WiredItem::paintEvent(QPaintEvent *e)
