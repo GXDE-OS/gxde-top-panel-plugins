@@ -1,4 +1,4 @@
-gxde-top-panel-plugins (5.2.5) UNRELEASED; urgency=medium
+gxde-top-panel-plugins (5.2.6) UNRELEASED; urgency=medium
 
   * Support hide dde dock 
   * chroot 下不显示电源按钮
@@ -11,8 +11,9 @@ gxde-top-panel-plugins (5.2.5) UNRELEASED; urgency=medium
   * 修复顶栏插件里有两个 Power 选项的问题（https://gitee.com/GXDE-OS/GXDE/issues/IDH7V2 ）
   * 支持银河麒麟虚拟键盘
   * 修复点击有线网络图标但跳转到无线网络设置页的问题
+  * 修复时间文本小的和问题时间插件不居中的问题
 
- -- gfdgd_xi <3025613752@qq.com>  Sat, 04 Apr 2026 20:59:17 +0800
+ -- gfdgd_xi <3025613752@qq.com>  Sat, 09 May 2026 11:05:30 +0800
 
 gxde-top-panel-plugins (4.10.9gxde0) unstable; urgency=low
 
