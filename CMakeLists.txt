@@ -40,7 +40,7 @@ endif()
 
 file(GLOB INTERFACES "interfaces/*.h")
 
-add_subdirectory("frame")
+#add_subdirectory("frame")
 add_subdirectory("plugins")
 
 # Install settings
