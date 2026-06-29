@@ -19,7 +19,7 @@ Build-Depends: debhelper (>= 8.0.0),
  libgxframeworkdbus-dev,
  libgsettings-qt-dev,
  cmake,
- libgxde-network-utils-dev (>= 1.0.0),
+ libgxde-network-utils-qt6-dev (>= 1.0.0),
  libdbusmenu-qt6-dev,
  clang [mips64el],
  libdtk6gui-dev
