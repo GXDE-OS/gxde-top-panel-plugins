@@ -38,7 +38,9 @@
 #include <QHBoxLayout>
 #include <QGraphicsScene>
 #include <QTimeLine>
-#include <QX11Info>
+#include <QDateTime>
+#include <QGuiApplication>
+#include <QtGui/private/qtx11extras_p.h>
 #include <QGSettings>
 #include <DGuiApplicationHelper>
 
@@ -297,14 +299,14 @@ void AppItem::mouseReleaseEvent(QMouseEvent *e)
         return;
     }
 
-    int curTimestamp = QX11Info::getTimestamp();
+    int curTimestamp = static_cast<long>(QDateTime::currentMSecsSinceEpoch());
     if ((curTimestamp - m_lastclickTimes) < 300)
         return;
 
     m_lastclickTimes = curTimestamp;
 
     if (e->button() == Qt::MiddleButton) {
-        m_itemEntryInter->NewInstance(QX11Info::getTimestamp());
+        m_itemEntryInter->NewInstance(static_cast<long>(QDateTime::currentMSecsSinceEpoch()));
 
         // play launch effect
         if (m_windowInfos.isEmpty())
@@ -319,7 +321,7 @@ void AppItem::mouseReleaseEvent(QMouseEvent *e)
         qDebug() << "app item clicked, name:" << m_itemEntryInter->name()
                  << "id:" << m_itemEntryInter->id() << "my-id:" << m_id << "icon:" << m_itemEntryInter->icon();
 
-        m_itemEntryInter->Activate(QX11Info::getTimestamp());
+        m_itemEntryInter->Activate(static_cast<long>(QDateTime::currentMSecsSinceEpoch()));
 
         // play launch effect
         if (m_windowInfos.isEmpty())
@@ -427,7 +429,7 @@ void AppItem::dropEvent(QDropEvent *e)
     }
 
     qDebug() << "accept drop event with URIs: " << uriList;
-    m_itemEntryInter->HandleDragDrop(QX11Info::getTimestamp(), uriList);
+    m_itemEntryInter->HandleDragDrop(static_cast<long>(QDateTime::currentMSecsSinceEpoch()), uriList);
 }
 
 void AppItem::leaveEvent(QEvent *e)
@@ -468,7 +470,7 @@ void AppItem::invokedMenuItem(const QString &itemId, const bool checked)
 {
     Q_UNUSED(checked);
 
-    m_itemEntryInter->HandleMenuItem(QX11Info::getTimestamp(), itemId);
+    m_itemEntryInter->HandleMenuItem(static_cast<long>(QDateTime::currentMSecsSinceEpoch()), itemId);
 }
 
 const QString AppItem::contextMenu() const

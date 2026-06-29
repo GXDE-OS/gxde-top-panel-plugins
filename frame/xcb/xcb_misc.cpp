@@ -20,7 +20,8 @@
  */
 
 #include <QDebug>
-#include <QX11Info>
+#include <QGuiApplication>
+#include <QtGui/private/qtx11extras_p.h>
 #include <QApplication>
 
 #include <xcb/xcb.h>
@@ -32,7 +33,7 @@ static XcbMisc * _xcb_misc_instance = NULL;
 
 XcbMisc::XcbMisc()
 {
-    xcb_intern_atom_cookie_t * cookie = xcb_ewmh_init_atoms(QX11Info::connection(), &m_ewmh_connection);
+    xcb_intern_atom_cookie_t * cookie = xcb_ewmh_init_atoms(qApp->nativeInterface<QNativeInterface::QX11Application>()->connection(), &m_ewmh_connection);
     xcb_ewmh_init_atoms_replies(&m_ewmh_connection, cookie, NULL);
 }
 

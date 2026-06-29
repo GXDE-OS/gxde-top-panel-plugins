@@ -43,7 +43,7 @@ SoundApplet::SoundApplet(QWidget *parent)
     : QScrollArea(parent)
     , m_centralWidget(new QWidget)
     , m_applicationTitle(new QWidget)
-    , m_volumeBtn(new DImageButton)
+    , m_volumeBtn(new QPushButton)
     , m_volumeIconMax(new QLabel)
     , m_volumeSlider(new VolumeSlider)
     , m_soundShow(new TipsWidget)
@@ -71,13 +71,13 @@ SoundApplet::SoundApplet(QWidget *parent)
     deviceLayout->addWidget(deviceLabel,0, Qt::AlignLeft);
     deviceLayout->addWidget(m_soundShow,0,Qt::AlignRight);
     deviceLayout->setSpacing(0);
-    deviceLayout->setMargin(0);
+    deviceLayout->setContentsMargins(0, 0, 0, 0);
 
     QVBoxLayout *deviceLineLayout = new QVBoxLayout;
     deviceLineLayout->addLayout(deviceLayout);
     //    deviceLineLayout->addSpacing(12);
     deviceLineLayout->addWidget(new HorizontalSeparator);
-    deviceLineLayout->setMargin(0);
+    deviceLineLayout->setContentsMargins(0, 0, 0, 0);
     deviceLineLayout->setSpacing(10);
 
     QHBoxLayout *volumeCtrlLayout = new QHBoxLayout;
@@ -88,7 +88,7 @@ SoundApplet::SoundApplet(QWidget *parent)
     volumeCtrlLayout->addSpacing(10);
     volumeCtrlLayout->addWidget(m_volumeIconMax);
     volumeCtrlLayout->setSpacing(0);
-    volumeCtrlLayout->setMargin(0);
+    volumeCtrlLayout->setContentsMargins(0, 0, 0, 0);
 
     TipsWidget *appLabel = new TipsWidget;
     appLabel->setText(tr("Application"));
@@ -96,7 +96,7 @@ SoundApplet::SoundApplet(QWidget *parent)
     QVBoxLayout *appLineHLayout = new QVBoxLayout;
     appLineHLayout->addWidget(new HorizontalSeparator);
     appLineHLayout->addWidget(appLabel);
-    appLineHLayout->setMargin(0);
+    appLineHLayout->setContentsMargins(0, 0, 0, 0);
     appLineHLayout->setSpacing(10);
 
     QVBoxLayout *appLineVLayout = new QVBoxLayout;
@@ -104,12 +104,13 @@ SoundApplet::SoundApplet(QWidget *parent)
     appLineVLayout->addLayout(appLineHLayout);
     appLineVLayout->addSpacing(8);
     appLineVLayout->setSpacing(0);
-    appLineVLayout->setMargin(0);
+    appLineVLayout->setContentsMargins(0, 0, 0, 0);
 
     m_applicationTitle->setLayout(appLineVLayout);
     m_applicationTitle->setAccessibleName("applicationtitle");
 
     m_volumeBtn->setFixedSize(ICON_SIZE, ICON_SIZE);
+    m_volumeBtn->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
     m_volumeSlider->setMinimum(0);
     m_volumeSlider->setMaximum(m_audioInter->maxUIVolume() * 1000.0f);
 
@@ -131,7 +132,7 @@ SoundApplet::SoundApplet(QWidget *parent)
     m_centralWidget->setAutoFillBackground(false);
     viewport()->setAutoFillBackground(false);
 
-    connect(m_volumeBtn, &DImageButton::clicked, this, &SoundApplet::toggleMute);
+    connect(m_volumeBtn, &QPushButton::clicked, this, &SoundApplet::toggleMute);
     connect(m_volumeSlider, &VolumeSlider::valueChanged, this, &SoundApplet::volumeSliderValueChanged);
     connect(m_volumeSlider, &VolumeSlider::requestPlaySoundEffect, this, &SoundApplet::onPlaySoundEffect);
     connect(m_audioInter, &DBusAudio::SinkInputsChanged, this, &SoundApplet::sinkInputsChanged);
@@ -255,5 +256,5 @@ void SoundApplet::refreshIcon()
     m_volumeIconMax->setPixmap(ret);
 
     ret = ImageUtil::loadSvg(iconLeft, ":/", ICON_SIZE, ratio);
-    m_volumeBtn->setPixmap(ret);
+    m_volumeBtn->setIcon(QIcon(ret));
 }

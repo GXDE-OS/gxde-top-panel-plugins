@@ -297,7 +297,7 @@ bool ShutdownPlugin::checkSwap()
         while (!stream.atEnd()) {
             const std::pair<bool, qint64> result =
                 checkIsPartitionType(stream.readLine().simplified().split(
-                                         " ", QString::SplitBehavior::SkipEmptyParts));
+                                         " ", Qt::SkipEmptyParts));
             qint64 image_size{ get_power_image_size() };
 
             if (result.first) {

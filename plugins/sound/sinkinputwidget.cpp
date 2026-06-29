@@ -46,22 +46,24 @@ const QPixmap getIconFromTheme(const QString &name, const QSize &size, const qre
 SinkInputWidget::SinkInputWidget(const QString &inputPath, QWidget *parent)
     : QWidget(parent)
     , m_inputInter(new DBusSinkInput(inputPath, this))
-    , m_volumeBtnMin(new DImageButton(this))
+    , m_volumeBtnMin(new QPushButton(this))
     , m_volumeIconMax(new QLabel(this))
-    , m_appBtn(new DImageButton(this))
+    , m_appBtn(new QPushButton(this))
     , m_volumeSlider(new VolumeSlider(this))
     , m_volumeLabel(new TipsWidget(this))
 {
     const QString iconName = m_inputInter->icon();
     m_appBtn->setAccessibleName("app-" + iconName + "-icon");
-    m_appBtn->setPixmap(getIconFromTheme(iconName, QSize(ICON_SIZE, ICON_SIZE), devicePixelRatioF()));
+    m_appBtn->setIcon(QIcon(getIconFromTheme(iconName, QSize(ICON_SIZE, ICON_SIZE), devicePixelRatioF())));
+    m_appBtn->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
 
     TipsWidget *titleLabel = new TipsWidget;
     titleLabel->setText(fontMetrics().elidedText(m_inputInter->name(), Qt::TextElideMode::ElideRight, APP_TITLE_SIZE));
 
     m_volumeBtnMin->setAccessibleName("volume-button");
     m_volumeBtnMin->setFixedSize(ICON_SIZE, ICON_SIZE);
-    m_volumeBtnMin->setPixmap(DHiDPIHelper::loadNxPixmap("://audio-volume-low-symbolic.svg"));
+    m_volumeBtnMin->setIcon(QIcon(DHiDPIHelper::loadNxPixmap("://audio-volume-low-symbolic.svg")));
+    m_volumeBtnMin->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
 
     m_volumeIconMax->setFixedSize(ICON_SIZE, ICON_SIZE);
 
@@ -78,7 +80,7 @@ SinkInputWidget::SinkInputWidget(const QString &inputPath, QWidget *parent)
     appLayout->addStretch();
     appLayout->addWidget(m_volumeLabel, 0, Qt::AlignRight);
     appLayout->setSpacing(0);
-    appLayout->setMargin(0);
+    appLayout->setContentsMargins(0, 0, 0, 0);
 
     // 音量图标+slider
     QHBoxLayout *volumeCtrlLayout = new QHBoxLayout;
@@ -89,20 +91,20 @@ SinkInputWidget::SinkInputWidget(const QString &inputPath, QWidget *parent)
     volumeCtrlLayout->addSpacing(10);
     volumeCtrlLayout->addWidget(m_volumeIconMax);
     volumeCtrlLayout->setSpacing(0);
-    volumeCtrlLayout->setMargin(0);
+    volumeCtrlLayout->setContentsMargins(0, 0, 0, 0);
 
     QVBoxLayout *centralLayout = new QVBoxLayout;
     centralLayout->addLayout(appLayout);
     centralLayout->addSpacing(6);
     centralLayout->addLayout(volumeCtrlLayout);
     centralLayout->setSpacing(2);
-    centralLayout->setMargin(0);
+    centralLayout->setContentsMargins(0, 0, 0, 0);
 
     connect(m_volumeSlider, &VolumeSlider::valueChanged, this, &SinkInputWidget::setVolume);
     connect(m_volumeSlider, &VolumeSlider::valueChanged, this, &SinkInputWidget::onVolumeChanged);
 //    connect(m_volumeSlider, &VolumeSlider::requestPlaySoundEffect, this, &SinkInputWidget::onPlaySoundEffect);
-    connect(m_appBtn, &DImageButton::clicked, this, &SinkInputWidget::setMute);
-    connect(m_volumeBtnMin, &DImageButton::clicked, this, &SinkInputWidget::setMute);
+    connect(m_appBtn, &QPushButton::clicked, this, &SinkInputWidget::setMute);
+    connect(m_volumeBtnMin, &QPushButton::clicked, this, &SinkInputWidget::setMute);
     connect(m_inputInter, &DBusSinkInput::MuteChanged, this, &SinkInputWidget::setMuteIcon);
     connect(m_inputInter, &DBusSinkInput::VolumeChanged, this, [ = ] {
         m_volumeSlider->setValue(m_inputInter->volume() * 1000);
@@ -161,9 +163,11 @@ void SinkInputWidget::setMuteIcon()
         p.drawPixmap(0, 0, muteIcon);
 
         appIconSource.setDevicePixelRatio(ratio);
-        m_appBtn->setPixmap(appIconSource);
+        m_appBtn->setIcon(QIcon(appIconSource));
+        m_appBtn->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
     } else {
-        m_appBtn->setPixmap(getIconFromTheme(m_inputInter->icon(), QSize(ICON_SIZE, ICON_SIZE), devicePixelRatioF()));
+        m_appBtn->setIcon(QIcon(getIconFromTheme(m_inputInter->icon(), QSize(ICON_SIZE, ICON_SIZE), devicePixelRatioF())));
+        m_appBtn->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
     }
 
     refreshIcon();
@@ -208,7 +212,8 @@ void SinkInputWidget::refreshIcon()
     m_volumeIconMax->setPixmap(ret);
 
     ret = ImageUtil::loadSvg(iconLeft, ":/", ICON_SIZE, ratio);
-    m_volumeBtnMin->setPixmap(ret);
+    m_volumeBtnMin->setIcon(QIcon(ret));
+    m_volumeBtnMin->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
 
 }
 

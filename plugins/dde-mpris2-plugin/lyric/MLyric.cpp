@@ -3,6 +3,7 @@
 //
 
 #include <iostream>
+#include <QRegularExpression>
 #include "MLyric.h"
 
 MLyric::MLyric(QString lyricText) {
@@ -15,7 +16,7 @@ MLyric::MLyric(QString lyricText) {
             this->by = line.section(':', 1).remove(']');
         } else if (line.startsWith("[offset:")) {
             this->offset = line.section(':', 1).remove(']').toInt();
-        } else if (line.contains(QRegExp(R"(\[[0-9]{1,2}:[0-9]{1,2}\.[0-9]{1,2}\])"))) {
+        } else if (line.contains(QRegularExpression(R"(\[[0-9]{1,2}:[0-9]{1,2}\.[0-9]{1,2}\])"))) {
             int min = line.mid(1, 2).toInt();
             int sec = line.mid(4, 2).toInt();
             int msec = line.mid(7, 2).toInt();

@@ -25,21 +25,20 @@
 #include "../frame/util/imageutil.h"
 #include <QHBoxLayout>
 #include <QDebug>
-#include <dimagebutton.h>
 #include <DGuiApplicationHelper>
 #include <DApplication>
 
 using namespace dde::network;
 
-DWIDGET_USE_NAMESPACE
 DGUI_USE_NAMESPACE
+DWIDGET_USE_NAMESPACE
 
 AccessPointWidget::AccessPointWidget()
     : QFrame(nullptr),
 
       m_activeState(NetworkDevice::Unknow),
       m_ssidBtn(new SsidButton(this)),
-      m_disconnectBtn(new DImageButton(this)),
+      m_disconnectBtn(new QPushButton(this)),
       m_securityLabel(new QLabel),
       m_strengthLabel(new QLabel)
 {
@@ -48,6 +47,8 @@ AccessPointWidget::AccessPointWidget()
     m_ssidBtn->setObjectName("Ssid");
 
     m_disconnectBtn->setVisible(false);
+    m_disconnectBtn->setFlat(true);
+    m_disconnectBtn->setFixedSize(24, 24);
 
     m_securityPixmap = Utils::renderSVG(":/wireless/resources/wireless/security.svg", QSize(16, 16), devicePixelRatioF());
     m_securityIconSize = m_securityPixmap.size();
@@ -68,13 +69,13 @@ AccessPointWidget::AccessPointWidget()
     QVBoxLayout *centralLayout = new QVBoxLayout;
     centralLayout->addLayout(infoLayout);
     centralLayout->setSpacing(0);
-    centralLayout->setMargin(0);
+    centralLayout->setContentsMargins(0, 0, 0, 0);
 
     setLayout(centralLayout);
 
     connect(m_ssidBtn, &SsidButton::clicked, this, &AccessPointWidget::clicked);
     connect(m_ssidBtn, &SsidButton::clicked, this, &AccessPointWidget::ssidClicked);
-    connect(m_disconnectBtn, &DImageButton::clicked, this, &AccessPointWidget::disconnectBtnClicked);
+    connect(m_disconnectBtn, &QPushButton::clicked, this, &AccessPointWidget::disconnectBtnClicked);
     connect(DGuiApplicationHelper::instance(), &DGuiApplicationHelper::themeTypeChanged, this, [ = ] {
         setStrengthIcon(m_ap.strength());
     });
@@ -120,18 +121,18 @@ void AccessPointWidget::setActiveState(const NetworkDevice::DeviceStatus state)
     m_disconnectBtn->setVisible(isActive);
 }
 
-void AccessPointWidget::enterEvent(QEvent *e)
+void AccessPointWidget::enterEvent(QEnterEvent *e)
 {
     QWidget::enterEvent(e);
     bool isLight = (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType);
-    m_disconnectBtn->setNormalPic(isLight ? ":/wireless/resources/wireless/disconnect_dark.svg" : ":/wireless/resources/wireless/disconnect.svg");
+    m_disconnectBtn->setIcon(QIcon(isLight ? ":/wireless/resources/wireless/disconnect_dark.svg" : ":/wireless/resources/wireless/disconnect.svg"));
 }
 
 void AccessPointWidget::leaveEvent(QEvent *e)
 {
     QWidget::leaveEvent(e);
     bool isLight = (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType);
-    m_disconnectBtn->setNormalPic(isLight ? ":/wireless/resources/wireless/select_dark.svg" : ":/wireless/resources/wireless/select.svg");
+    m_disconnectBtn->setIcon(QIcon(isLight ? ":/wireless/resources/wireless/select_dark.svg" : ":/wireless/resources/wireless/select.svg"));
 }
 
 void AccessPointWidget::setStrengthIcon(const int strength)
@@ -164,9 +165,7 @@ void AccessPointWidget::setStrengthIcon(const int strength)
     m_securityPixmap.setDevicePixelRatio(devicePixelRatioF());
     m_securityLabel->setPixmap(m_securityPixmap);
 
-    m_disconnectBtn->setNormalPic(isLight ? ":/wireless/resources/wireless/select_dark.svg" : ":/wireless/resources/wireless/select.svg");
-    m_disconnectBtn->setHoverPic(isLight ? ":/wireless/resources/wireless/disconnect_dark.svg" : ":/wireless/resources/wireless/disconnect.svg");
-    m_disconnectBtn->setPressPic(isLight ? ":/wireless/resources/wireless/disconnect_dark.svg" : ":/wireless/resources/wireless/disconnect.svg");
+    m_disconnectBtn->setIcon(QIcon(isLight ? ":/wireless/resources/wireless/select_dark.svg" : ":/wireless/resources/wireless/select.svg"));
 }
 
 void AccessPointWidget::ssidClicked()

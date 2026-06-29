@@ -138,7 +138,7 @@ void SoundItem::resizeEvent(QResizeEvent *e)
 
 void SoundItem::wheelEvent(QWheelEvent *e)
 {
-    QWheelEvent *event = new QWheelEvent(e->pos(), e->delta(), e->buttons(), e->modifiers());
+    QWheelEvent *event = new QWheelEvent(e->position(), e->globalPosition(), e->pixelDelta(), e->angleDelta(), e->buttons(), e->modifiers(), e->phase(), e->inverted());
     qApp->postEvent(m_applet->mainSlider(), event);
 
     e->accept();
@@ -169,7 +169,7 @@ void SoundItem::refreshIcon()
         if (volmue >= 1000)
             volumeString = "100";
         else
-            volumeString = QString("0") + ('0' + int(volmue / 100)) + "0";
+            volumeString = QString("0") + QChar('0' + int(volmue / 100)) + "0";
 
         iconString = "audio-volume-" + volumeString;
 

@@ -17,10 +17,10 @@ void ScrollLabel::scrollTimerEvent() {
         QFontMetrics fm(this->font());
         int spaceWidth = 0;
         if (this->drawTimeLength == 0) {
-            spaceWidth += fm.width(this->spaceStr);
+            spaceWidth += fm.horizontalAdvance(this->spaceStr);
         }
 
-        int textLength = fm.width(text());
+        int textLength = fm.horizontalAdvance(text());
         if (this->drawTimeLength == 0) {
             this->offset += 1;
         } else {
@@ -63,7 +63,7 @@ void ScrollLabel::paintEvent(QPaintEvent *event) {
 void ScrollLabel::checkStr() {
     QFontMetrics fm(this->font());
 
-    if (fm.width(text()) < this->width()) {
+    if (fm.horizontalAdvance(text()) < this->width()) {
         this->offset = 0;
         this->scrollTimer_p->stop();
     } else {

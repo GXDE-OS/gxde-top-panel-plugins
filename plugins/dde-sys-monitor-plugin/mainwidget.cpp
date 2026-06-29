@@ -75,7 +75,7 @@ void MainWidget::UpdateData(const Info &info, Dock::Position position, const Set
                                                QBoxLayout::LeftToRight:QBoxLayout::TopToBottom);
             centralLayout->addWidget(cpuMemLabel);
             centralLayout->addWidget(netLabel);
-            centralLayout->setMargin(0);
+            centralLayout->setContentsMargins(0, 0, 0, 0);
             setLayout(centralLayout);
         }
         centralLayout->setSpacing(settings.value("wordSpacingSpinBox").toInt());
@@ -163,7 +163,7 @@ void MainWidget::UpdateData(const Info &info, Dock::Position position, const Set
         {
             centralLayout = new QBoxLayout((position==Dock::Top||position==Dock::Bottom)?
                                                QBoxLayout::LeftToRight:QBoxLayout::TopToBottom);
-            centralLayout->setMargin(0);
+            centralLayout->setContentsMargins(0, 0, 0, 0);
             setLayout(centralLayout);
         }
 

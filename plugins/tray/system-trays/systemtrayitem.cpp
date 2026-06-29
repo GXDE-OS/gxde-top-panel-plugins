@@ -49,7 +49,7 @@ SystemTrayItem::SystemTrayItem(PluginsItemInterface *const pluginInter, const QS
     QBoxLayout *hLayout = new QHBoxLayout(this);
     hLayout->addWidget(m_centralWidget);
     hLayout->setSpacing(0);
-    hLayout->setMargin(0);
+    hLayout->setContentsMargins(0, 0, 0, 0);
 
     setLayout(hLayout);
     setAccessibleName(m_pluginInter->pluginName() + "-" + m_itemKey);
@@ -189,7 +189,7 @@ bool SystemTrayItem::event(QEvent *event)
     return AbstractTrayWidget::event(event);
 }
 
-void SystemTrayItem::enterEvent(QEvent *event)
+void SystemTrayItem::enterEvent(QEnterEvent *event)
 {
     if (checkGSettingsControl()) {
         return;

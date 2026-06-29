@@ -29,7 +29,8 @@
 #include <QResizeEvent>
 #include <QScreen>
 #include <QGuiApplication>
-#include <QX11Info>
+#include <QGuiApplication>
+#include <QtGui/private/qtx11extras_p.h>
 #include <qpa/qplatformwindow.h>
 #include <DStyle>
 #include <DPlatformWindowHandle>
@@ -546,7 +547,7 @@ void MainWindow::initConnections()
 
 const QPoint MainWindow::x11GetWindowPos()
 {
-    const auto disp = QX11Info::display();
+    const auto disp = qApp->nativeInterface<QNativeInterface::QX11Application>()->display();
 
     unsigned int unused;
     int x;
@@ -561,7 +562,7 @@ const QPoint MainWindow::x11GetWindowPos()
 
 void MainWindow::x11MoveWindow(const int x, const int y)
 {
-    const auto disp = QX11Info::display();
+    const auto disp = qApp->nativeInterface<QNativeInterface::QX11Application>()->display();
 
     XMoveWindow(disp, winId(), x, y);
     XFlush(disp);
@@ -569,7 +570,7 @@ void MainWindow::x11MoveWindow(const int x, const int y)
 
 void MainWindow::x11MoveResizeWindow(const int x, const int y, const int w, const int h)
 {
-    const auto disp = QX11Info::display();
+    const auto disp = qApp->nativeInterface<QNativeInterface::QX11Application>()->display();
 
     XMoveResizeWindow(disp, winId(), x, y, w, h);
     XFlush(disp);

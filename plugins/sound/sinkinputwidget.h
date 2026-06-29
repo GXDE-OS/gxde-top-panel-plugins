@@ -27,8 +27,9 @@
 #include "../widgets/tipswidget.h"
 
 #include <QFrame>
+#include <QLabel>
 
-#include <dimagebutton.h>
+#include <QPushButton>
 #include <QPainter>
 
 class SinkInputWidget : public QWidget
@@ -51,8 +52,8 @@ private:
 private:
     DBusSinkInput *m_inputInter;
 
-    Dtk::Widget::DImageButton *m_appBtn;
-    Dtk::Widget::DImageButton *m_volumeBtnMin;
+    QPushButton *m_appBtn;
+    QPushButton *m_volumeBtnMin;
     QLabel *m_volumeIconMax;
     VolumeSlider *m_volumeSlider;
     TipsWidget *m_volumeLabel;

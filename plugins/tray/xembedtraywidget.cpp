@@ -24,7 +24,7 @@
 
 #include <QWindow>
 #include <QPainter>
-#include <QX11Info>
+#include <QGuiApplication>
 #include <QDebug>
 #include <QMouseEvent>
 #include <QProcess>
@@ -152,7 +152,7 @@ void XEmbedTrayWidget::mouseMoveEvent(QMouseEvent *e)
 
 void XEmbedTrayWidget::configContainerPosition()
 {
-    auto c = QX11Info::connection();
+    auto c = qApp->nativeInterface<QNativeInterface::QX11Application>()->connection();
 
     const QPoint p(rawXPosition(QCursor::pos()));
 
@@ -172,7 +172,7 @@ void XEmbedTrayWidget::configContainerPosition()
 
 void XEmbedTrayWidget::wrapWindow()
 {
-    auto c = QX11Info::connection();
+    auto c = qApp->nativeInterface<QNativeInterface::QX11Application>()->connection();
 
     auto cookie = xcb_get_geometry(c, m_windowId);
     QScopedPointer<xcb_get_geometry_reply_t> clientGeom(xcb_get_geometry_reply(c, cookie, Q_NULLPTR));
@@ -282,8 +282,8 @@ void XEmbedTrayWidget::sendHoverEvent()
     configContainerPosition();
     setX11PassMouseEvent(false);
     setWindowOnTop(true);
-    XTestFakeMotionEvent(QX11Info::display(), 0, p.x(), p.y(), CurrentTime);
-    XFlush(QX11Info::display());
+    XTestFakeMotionEvent(qApp->nativeInterface<QNativeInterface::QX11Application>()->display(), 0, p.x(), p.y(), CurrentTime);
+    XFlush(qApp->nativeInterface<QNativeInterface::QX11Application>()->display());
     QTimer::singleShot(100, this, [=] { setX11PassMouseEvent(true); });
 }
 
@@ -297,7 +297,7 @@ void XEmbedTrayWidget::updateIcon()
 
 //void TrayWidget::hideIcon()
 //{
-//    auto c = QX11Info::connection();
+//    auto c = qApp->nativeInterface<QNativeInterface::QX11Application>()->connection();
 
 //    const uint32_t stackAboveData[] = {XCB_STACK_MODE_BELOW};
 //    xcb_configure_window(c, m_containerWid, XCB_CONFIG_WINDOW_STACK_MODE, stackAboveData);
@@ -321,19 +321,19 @@ void XEmbedTrayWidget::sendClick(uint8_t mouseButton, int x, int y)
     configContainerPosition();
     setX11PassMouseEvent(false);
     setWindowOnTop(true);
-    XTestFakeMotionEvent(QX11Info::display(), 0, p.x(), p.y(), CurrentTime);
-    XFlush(QX11Info::display());
-    XTestFakeButtonEvent(QX11Info::display(), mouseButton, true, CurrentTime);
-    XFlush(QX11Info::display());
-    XTestFakeButtonEvent(QX11Info::display(), mouseButton, false, CurrentTime);
-    XFlush(QX11Info::display());
+    XTestFakeMotionEvent(qApp->nativeInterface<QNativeInterface::QX11Application>()->display(), 0, p.x(), p.y(), CurrentTime);
+    XFlush(qApp->nativeInterface<QNativeInterface::QX11Application>()->display());
+    XTestFakeButtonEvent(qApp->nativeInterface<QNativeInterface::QX11Application>()->display(), mouseButton, true, CurrentTime);
+    XFlush(qApp->nativeInterface<QNativeInterface::QX11Application>()->display());
+    XTestFakeButtonEvent(qApp->nativeInterface<QNativeInterface::QX11Application>()->display(), mouseButton, false, CurrentTime);
+    XFlush(qApp->nativeInterface<QNativeInterface::QX11Application>()->display());
     QTimer::singleShot(100, this, [=] { setX11PassMouseEvent(true); });
 }
 
 // NOTE: WM_NAME may can not obtain successfully
 QString XEmbedTrayWidget::getWindowProperty(quint32 winId, QString propName)
 {
-    const auto display = QX11Info::display();
+    const auto display = qApp->nativeInterface<QNativeInterface::QX11Application>()->display();
 
     Atom atom_prop = XInternAtom(display, propName.toLocal8Bit(), true);
     if (!atom_prop) {
@@ -382,7 +382,7 @@ void XEmbedTrayWidget::setActive(const bool active)
 void XEmbedTrayWidget::refershIconImage()
 {
     const auto ratio = devicePixelRatioF();
-    auto c = QX11Info::connection();
+    auto c = qApp->nativeInterface<QNativeInterface::QX11Application>()->connection();
     auto cookie = xcb_get_geometry(c, m_windowId);
     QScopedPointer<xcb_get_geometry_reply_t> geom(xcb_get_geometry_reply(c, cookie, Q_NULLPTR));
     if (geom.isNull())
@@ -483,8 +483,8 @@ void XEmbedTrayWidget::setX11PassMouseEvent(const bool pass)
 {
     if (pass)
     {
-        XShapeCombineRectangles(QX11Info::display(), m_containerWid, ShapeBounding, 0, 0, nullptr, 0, ShapeSet, YXBanded);
-        XShapeCombineRectangles(QX11Info::display(), m_containerWid, ShapeInput, 0, 0, nullptr, 0, ShapeSet, YXBanded);
+        XShapeCombineRectangles(qApp->nativeInterface<QNativeInterface::QX11Application>()->display(), m_containerWid, ShapeBounding, 0, 0, nullptr, 0, ShapeSet, YXBanded);
+        XShapeCombineRectangles(qApp->nativeInterface<QNativeInterface::QX11Application>()->display(), m_containerWid, ShapeInput, 0, 0, nullptr, 0, ShapeSet, YXBanded);
     }
     else
     {
@@ -494,16 +494,16 @@ void XEmbedTrayWidget::setX11PassMouseEvent(const bool pass)
         rectangle.width = 1;
         rectangle.height = 1;
 
-        XShapeCombineRectangles(QX11Info::display(), m_containerWid, ShapeBounding, 0, 0, &rectangle, 1, ShapeSet, YXBanded);
-        XShapeCombineRectangles(QX11Info::display(), m_containerWid, ShapeInput, 0, 0, &rectangle, 1, ShapeSet, YXBanded);
+        XShapeCombineRectangles(qApp->nativeInterface<QNativeInterface::QX11Application>()->display(), m_containerWid, ShapeBounding, 0, 0, &rectangle, 1, ShapeSet, YXBanded);
+        XShapeCombineRectangles(qApp->nativeInterface<QNativeInterface::QX11Application>()->display(), m_containerWid, ShapeInput, 0, 0, &rectangle, 1, ShapeSet, YXBanded);
     }
 
-    XFlush(QX11Info::display());
+    XFlush(qApp->nativeInterface<QNativeInterface::QX11Application>()->display());
 }
 
 void XEmbedTrayWidget::setWindowOnTop(const bool top)
 {
-    auto c = QX11Info::connection();
+    auto c = qApp->nativeInterface<QNativeInterface::QX11Application>()->connection();
     const uint32_t stackAboveData[] = {top ? XCB_STACK_MODE_ABOVE : XCB_STACK_MODE_BELOW};
     xcb_configure_window(c, m_containerWid, XCB_CONFIG_WINDOW_STACK_MODE, stackAboveData);
     xcb_flush(c);
@@ -511,7 +511,7 @@ void XEmbedTrayWidget::setWindowOnTop(const bool top)
 
 bool XEmbedTrayWidget::isBadWindow()
 {
-    auto c = QX11Info::connection();
+    auto c = qApp->nativeInterface<QNativeInterface::QX11Application>()->connection();
 
     auto cookie = xcb_get_geometry(c, m_windowId);
     QScopedPointer<xcb_get_geometry_reply_t> clientGeom(xcb_get_geometry_reply(c, cookie, Q_NULLPTR));

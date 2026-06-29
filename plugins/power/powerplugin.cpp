@@ -212,7 +212,7 @@ void PowerPlugin::refreshTipsData()
 
     if (batteryState == BatteryState::DIS_CHARGING || batteryState == BatteryState::NOT_CHARGED || batteryState == BatteryState::UNKNOWN) {
         qulonglong timeToEmpty = m_systemPowerInter->batteryTimeToEmpty();
-        QDateTime time = QDateTime::fromTime_t(timeToEmpty).toUTC();
+        QDateTime time = QDateTime::fromSecsSinceEpoch(timeToEmpty).toUTC();
         uint hour = time.toString("hh").toUInt();
         uint min = time.toString("mm").toUInt();
 
@@ -231,7 +231,7 @@ void PowerPlugin::refreshTipsData()
         m_tipsLabel->setText(tr("Charged %1").arg(value));
     }else {
         qulonglong timeToFull = m_systemPowerInter->batteryTimeToFull();
-        QDateTime time = QDateTime::fromTime_t(timeToFull).toUTC();
+        QDateTime time = QDateTime::fromSecsSinceEpoch(timeToFull).toUTC();
         uint hour = time.toString("hh").toUInt();
         uint min = time.toString("mm").toUInt();
         QString tips;

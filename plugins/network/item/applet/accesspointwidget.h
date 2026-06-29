@@ -29,7 +29,6 @@
 #include <QPushButton>
 #include <QDBusObjectPath>
 
-#include <dimagebutton.h>
 #include <NetworkDevice>
 
 class SsidButton : public QLabel
@@ -70,8 +69,8 @@ signals:
     void clicked() const;
 
 private:
-    void enterEvent(QEvent *e);
-    void leaveEvent(QEvent *e);
+    void enterEvent(QEnterEvent *e) override;
+    void leaveEvent(QEvent *e) override;
     void setStrengthIcon(const int strength);
 
 private slots:
@@ -83,7 +82,7 @@ private:
 
     AccessPoint m_ap;
     SsidButton *m_ssidBtn;
-    Dtk::Widget::DImageButton *m_disconnectBtn;
+    QPushButton *m_disconnectBtn;
     QLabel *m_securityLabel;
     QLabel *m_strengthLabel;
 

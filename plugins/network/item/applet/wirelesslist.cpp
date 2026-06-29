@@ -1,4 +1,4 @@
-﻿/*
+/*
  * Copyright (C) 2011 ~ 2018 Deepin Technology Co., Ltd.
  *
  * Author:     sbw <sbw@sbw.so>
@@ -63,7 +63,7 @@ WirelessList::WirelessList(WirelessDevice *deviceIter, QWidget *parent)
 
     m_centralLayout->addWidget(m_controlPanel);
     m_centralLayout->setSpacing(0);
-    m_centralLayout->setMargin(0);
+    m_centralLayout->setContentsMargins(0, 0, 0, 0);
 
     setWidget(m_centralWidget);
     setFrameShape(QFrame::NoFrame);

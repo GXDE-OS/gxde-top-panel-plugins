@@ -30,7 +30,8 @@
 #include <X11/Xatom.h>
 #include <sys/shm.h>
 
-#include <QX11Info>
+#include <QGuiApplication>
+#include <QtGui/private/qtx11extras_p.h>
 #include <QPainter>
 #include <QVBoxLayout>
 #include <QSizeF>
@@ -87,7 +88,7 @@ AppSnapshot::AppSnapshot(const WId wid, QWidget *parent)
 
 void AppSnapshot::closeWindow() const
 {
-    const auto display = QX11Info::display();
+    const auto display = qApp->nativeInterface<QNativeInterface::QX11Application>()->display();
 
     XEvent e;
 
@@ -273,7 +274,7 @@ void AppSnapshot::mousePressEvent(QMouseEvent *e)
 
 SHMInfo *AppSnapshot::getImageDSHM()
 {
-    const auto display = QX11Info::display();
+    const auto display = qApp->nativeInterface<QNativeInterface::QX11Application>()->display();
 
     Atom atom_prop = XInternAtom(display, "_DEEPIN_DXCB_SHM_INFO", true);
     if (!atom_prop) {
@@ -297,7 +298,7 @@ SHMInfo *AppSnapshot::getImageDSHM()
 
 XImage *AppSnapshot::getImageXlib()
 {
-    const auto display = QX11Info::display();
+    const auto display = qApp->nativeInterface<QNativeInterface::QX11Application>()->display();
     Window unused_window;
     int unused_int;
     unsigned unused_uint, w, h;
@@ -307,7 +308,7 @@ XImage *AppSnapshot::getImageXlib()
 
 QRect AppSnapshot::rectRemovedShadow(const QImage &qimage, unsigned char *prop_to_return_gtk)
 {
-    const auto display = QX11Info::display();
+    const auto display = qApp->nativeInterface<QNativeInterface::QX11Application>()->display();
 
     const Atom gtk_frame_extents = XInternAtom(display, "_GTK_FRAME_EXTENTS", true);
     Atom actual_type_return_gtk;

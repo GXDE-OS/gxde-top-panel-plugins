@@ -1,5 +1,6 @@
 #include "pluginsettingdialog.h"
 #include "ui_pluginsettingdialog.h"
+#include <QRegularExpression>
 
 pluginSettingDialog::pluginSettingDialog(Settings *settings,QWidget *parent) :
     QDialog(parent),
@@ -39,7 +40,7 @@ pluginSettingDialog::pluginSettingDialog(Settings *settings,QWidget *parent) :
         else if(obj->metaObject()->className()==QStringLiteral("QWidget"))
         {
             QWidget *wg=(QWidget*)obj;
-            pal.setColor(QPalette::Background,i.value().value<QColor>());
+            pal.setColor(QPalette::Window,i.value().value<QColor>());
             wg->setAutoFillBackground(true);
             wg->setPalette(pal);
             //qDebug()<<"颜色是："<<i.value().value<QColor>();
@@ -50,7 +51,7 @@ pluginSettingDialog::pluginSettingDialog(Settings *settings,QWidget *parent) :
             le->setText(i.value().value<QString>());
         }
     }
-    foreach(QPushButton* btn,findChildren<QPushButton*>(QRegExp("\\w*ColorPushButton")))
+    foreach(QPushButton* btn,findChildren<QPushButton*>(QRegularExpression("\\w*ColorPushButton")))
     {
         connect(btn,SIGNAL(clicked(bool)),this,SLOT(selectColor(void)));
     }
@@ -88,7 +89,7 @@ void pluginSettingDialog::getDisplayContentSetting(Settings *settings)
         else if(obj->metaObject()->className()==QStringLiteral("QWidget"))
         {
             QWidget *wg=(QWidget*)obj;
-            settings->insert(wg->objectName(),wg->palette().background().color());
+            settings->insert(wg->objectName(),wg->palette().window().color());
         }
         else if(obj->metaObject()->className()==QStringLiteral("QLineEdit"))
         {
@@ -104,11 +105,11 @@ void pluginSettingDialog::selectColor()
     //"netUpColorPushButton"-->"netUpWidget"
     colorWidget=findChild<QWidget*>(sender()->objectName().replace("ColorPushButton","Widget"));
 
-    QColor color = QColorDialog::getColor(colorWidget->palette().background().color(),
+    QColor color = QColorDialog::getColor(colorWidget->palette().window().color(),
                                           this,tr("颜色对话框"),QColorDialog::ShowAlphaChannel);
     if(color!=QColor::Invalid)
     {
-        pal.setColor(QPalette::Background,color);
+        pal.setColor(QPalette::Window,color);
         colorWidget->setAutoFillBackground(true);
         colorWidget->setPalette(pal);
     }

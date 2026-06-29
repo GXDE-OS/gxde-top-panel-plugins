@@ -21,7 +21,6 @@
 
 #include "previewcontainer.h"
 
-#include <QDesktopWidget>
 #include <QScreen>
 #include <QApplication>
 #include <QDragEnterEvent>

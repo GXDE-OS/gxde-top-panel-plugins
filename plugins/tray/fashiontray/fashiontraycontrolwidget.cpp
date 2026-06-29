@@ -167,7 +167,7 @@ void FashionTrayControlWidget::mousePressEvent(QMouseEvent *event)
     QWidget::mousePressEvent(event);
 }
 
-void FashionTrayControlWidget::enterEvent(QEvent *event)
+void FashionTrayControlWidget::enterEvent(QEnterEvent *event)
 {
     m_hover = true;
     update();

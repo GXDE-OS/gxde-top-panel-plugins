@@ -27,7 +27,7 @@
 #include <QDir>
 #include <QWindow>
 #include <QWidget>
-#include <QX11Info>
+#include <QGuiApplication>
 #include <QGSettings>
 
 #include "../widgets/tipswidget.h"

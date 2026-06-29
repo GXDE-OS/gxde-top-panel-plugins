@@ -51,7 +51,7 @@ void StreamChart::paintEvent(QPaintEvent *)
         //最后画矩形
         penb->setColor(colorBorder);
         pt.setPen(*penb);
-        pt.drawRoundRect(0,0,width,height,borderRound,borderRound);
+        pt.drawRoundedRect(0,0,width,height,borderRound,borderRound);
     }
 }
 

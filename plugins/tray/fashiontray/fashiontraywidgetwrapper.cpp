@@ -53,7 +53,7 @@ FashionTrayWidgetWrapper::FashionTrayWidgetWrapper(const QString &itemKey, Abstr
     setAcceptDrops(true);
 
     m_layout->setSpacing(0);
-    m_layout->setMargin(0);
+    m_layout->setContentsMargins(0, 0, 0, 0);
     m_layout->setContentsMargins(0, 0, 0, 0);
 
     m_layout->addWidget(m_absTrayWidget);
@@ -166,7 +166,7 @@ void FashionTrayWidgetWrapper::dragEnterEvent(QDragEnterEvent *event)
     QWidget::dragEnterEvent(event);
 }
 
-void FashionTrayWidgetWrapper::enterEvent(QEvent *event)
+void FashionTrayWidgetWrapper::enterEvent(QEnterEvent *event)
 {
     m_hover = true;
     update();

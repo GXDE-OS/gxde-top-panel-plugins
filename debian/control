@@ -3,32 +3,26 @@ Section: x11
 Priority: optional
 Maintainer: gfdgd xi <3025613752@qq.com>
 Build-Depends: debhelper (>= 8.0.0),
- qttools5-dev,
- qttools5-dev-tools,
+ qt6-tools-dev,
+ qt6-tools-dev-tools,
  pkg-config,
- qt5-qmake,
  libxcb-image0-dev,
  libxcb-composite0-dev,
  libxcb-ewmh-dev,
- libqt5x11extras5-dev,
  libxcb-damage0-dev,
- libqt5svg5-dev,
+ libqt6svg6-dev,
  libxcb-icccm4-dev,
  libxtst-dev,
- libdtkwidget-dev,
- libdtkcore-dev,
- libdtkcore5-bin,
- qttools5-dev-tools,
- libxcb-icccm4-dev,
- qtbase5-private-dev,
+ libdtk6widget-dev,
+ libdtk6core-dev,
+ qt6-base-private-dev,
  libgxframeworkdbus-dev,
  libgsettings-qt-dev,
  cmake,
  libgxde-network-utils-dev (>= 1.0.0),
- libdbusmenu-qt5-dev,
- libdtkcore5-bin,
+ libdbusmenu-qt6-dev,
  clang [mips64el],
- libdtkgui-dev
+ libdtk6gui-dev
 Standards-Version: 3.9.8
 Homepage: http://www.deepin.org/
 

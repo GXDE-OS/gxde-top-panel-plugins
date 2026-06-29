@@ -21,7 +21,7 @@
 
 #include "snitraywidget.h"
 #include "util/themeappicon.h"
-#include <dbusmenu-qt5/dbusmenuimporter.h>
+#include <dbusmenu-qt6/dbusmenuimporter.h>
 #include <QPainter>
 #include <QApplication>
 
@@ -554,7 +554,7 @@ QPixmap SNITrayWidget::newIconPixmap(IconType iconType)
     return pixmap;
 }
 
-void SNITrayWidget::enterEvent(QEvent *event)
+void SNITrayWidget::enterEvent(QEnterEvent *event)
 {
     m_popupTipsDelayTimer->start();
 

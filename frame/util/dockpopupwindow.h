@@ -23,11 +23,14 @@
 #define DOCKPOPUPWINDOW_H
 
 #include <darrowrectangle.h>
-#include <dregionmonitor.h>
 #include <DWindowManagerHelper>
 
 DWIDGET_USE_NAMESPACE
 DGUI_USE_NAMESPACE
+
+QT_BEGIN_NAMESPACE
+namespace Dtk { namespace Gui { class DRegionMonitor; } }
+QT_END_NAMESPACE
 
 class DockPopupWindow : public Dtk::Widget::DArrowRectangle
 {
@@ -56,7 +59,7 @@ signals:
 
 protected:
     void showEvent(QShowEvent *e);
-    void enterEvent(QEvent *e);
+    void enterEvent(QEnterEvent *e);
     bool eventFilter(QObject *o, QEvent *e);
 
 private slots:
@@ -70,7 +73,7 @@ private:
 
     QTimer *m_acceptDelayTimer;
 
-    DRegionMonitor *m_regionInter;
+    Dtk::Gui::DRegionMonitor *m_regionInter;
     DWindowManagerHelper *m_wmHelper;
 };
 
