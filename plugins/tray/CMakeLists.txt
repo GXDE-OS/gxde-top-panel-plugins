@@ -22,7 +22,7 @@ find_package(Dtk6Gui REQUIRED)
 find_package(Dtk6Core REQUIRED)
 
 pkg_check_modules(XCB_LIBS REQUIRED xcb-ewmh xcb xcb-image xcb-composite xtst x11 xext xcb-icccm dbusmenu-qt6)
-pkg_check_modules(DDE-Network-Utils REQUIRED gxde-network-utils)
+pkg_check_modules(DDE-Network-Utils REQUIRED gxde-network-utils-qt6)
 pkg_check_modules(DFrameworkDBus REQUIRED dframeworkdbus)
 pkg_check_modules(QGSettings REQUIRED gsettings-qt)
 
