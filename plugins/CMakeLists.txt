@@ -1,5 +1,5 @@
 
-add_subdirectory("datetime")
+#add_subdirectory("datetime")
 add_subdirectory("datetime-top-panel")
 #add_subdirectory("dde-datetime")
 #add_subdirectory("disk-mount")

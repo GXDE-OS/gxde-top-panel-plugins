@@ -84,21 +84,10 @@ void MainWidget::UpdateData(const Info &info, Dock::Position position, const Set
         netLabel->setFont(font);
 
         QString style;
-        switch(settings.value("fontColorComboBox").toInt())
-        {
-            case 0:
-                style=QString("QLabel {color: %1;}").arg("#fff");
-                break;
-            case 1:
-                style=QString("QLabel {color: %1;}").arg("#000");
-                break;
-            case 2:
-                if(DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType)
-                    style=QString("QLabel {color: %1;}").arg("#000");
-                else
-                    style=QString("QLabel {color: %1;}").arg("#fff");
-                break;
-        }
+        if(DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType)
+            style=QString("QLabel {color: %1;}").arg("#000");
+        else
+            style=QString("QLabel {color: %1;}").arg("#fff");
 
         cpuMemLabel->setStyleSheet(style);
         netLabel->setStyleSheet(style);

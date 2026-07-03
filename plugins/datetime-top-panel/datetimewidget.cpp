@@ -35,6 +35,7 @@
 #define TIME_FONT DFontSizeManager::instance()->t4()
 #define DATE_FONT DFontSizeManager::instance()->t10()
 
+DGUI_USE_NAMESPACE
 DWIDGET_USE_NAMESPACE
 
 DatetimeWidget::DatetimeWidget(QWidget *parent)
@@ -143,7 +144,10 @@ void DatetimeWidget::paintEvent(QPaintEvent *e)
     }
 
     painter.setFont(m_timeFont);
-    painter.setPen(QPen(palette().brightText(), 1));
+
+    //painter.setPen(QPen(QBrush(QColor(255, 255, 255)), 1));
+
+    painter.setPen(QPen(DGuiApplicationHelper::instance()->applicationPalette().brightText(), 1));
     
     // 调整时间插件位置使之居中
     QRect timeRect = rect();
