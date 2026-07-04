@@ -10,21 +10,21 @@ find_package(PkgConfig REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Widgets Svg DBus)
 find_package(Dtk6Widget REQUIRED)
 find_package(Dtk6Core REQUIRED)
+find_package(DFrameworkdbusQt6 CONFIG REQUIRED)
 
-pkg_check_modules(DFrameworkDBus REQUIRED dframeworkdbus)
-pkg_check_modules(QGSettings REQUIRED gsettings-qt)
+pkg_check_modules(QGSettings REQUIRED gsettings-qt6)
 
 add_definitions("${QT_DEFINITIONS} -DQT_PLUGIN")
 add_library(${PLUGIN_NAME} SHARED ${SRCS} resources/sound.qrc)
 set_target_properties(${PLUGIN_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ../system-trays)
-target_include_directories(${PLUGIN_NAME} PUBLIC ${DFrameworkDBus_INCLUDE_DIRS}
+target_include_directories(${PLUGIN_NAME} PUBLIC
   ${QGSettings_INCLUDE_DIRS}
   ../../interfaces
   ../../frame)
 target_link_libraries(${PLUGIN_NAME} PRIVATE
   Dtk6::Widget
   Dtk6::Core
-  ${DFrameworkDBus_LIBRARIES}
+  DFrameworkdbusQt6::DFrameworkdbusQt6
   ${QGSettings_LIBRARIES}
   Qt6::DBus
   Qt6::Widgets

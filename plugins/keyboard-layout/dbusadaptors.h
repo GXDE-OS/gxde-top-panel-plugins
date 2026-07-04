@@ -23,6 +23,8 @@
 #include <QMenu>
 #include <QtDBus/QtDBus>
 #include <com_deepin_daemon_inputdevice_keyboard.h>
+#include <QMap>
+using KeyboardLayoutList = QMap<QString, QString>;
 
 using Keyboard = com::deepin::daemon::inputdevice::Keyboard;
 
