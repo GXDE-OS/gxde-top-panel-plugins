@@ -29,6 +29,7 @@ void DDEMpris2ItemWidget::setTextAlign(Qt::AlignmentFlag align) {
 
 void DDEMpris2ItemWidget::setText(QString text) {
     ui->label->setText(text);
+    ui->label->setFixedWidth(150);
 }
 
 void DDEMpris2ItemWidget::setPlayblackStatus(bool isPlaying) {

@@ -1,4 +1,4 @@
-gxde-top-panel-plugins (6.0.2) UNRELEASED; urgency=medium
+gxde-top-panel-plugins (6.0.3) UNRELEASED; urgency=medium
 
   * Support hide dde dock 
   * chroot 下不显示电源按钮
@@ -15,8 +15,9 @@ gxde-top-panel-plugins (6.0.2) UNRELEASED; urgency=medium
   * Qt6 迁移
   * 修复时间插件、资源监视插件不会正确跟随系统主题颜色变化
   * 将部分还未完全迁到Qt6的插件全部迁到Qt6
+  * 修复顶栏插件宽度异常的问题（https://gitee.com/GXDE-OS/gxde-top-panel/issues/IJYRX8 ）
 
- -- gfdgd_xi <3025613752@qq.com>  Mon, 06 Jul 2026 10:02:17 +0800
+ -- gfdgd_xi <3025613752@qq.com>  Mon, 06 Jul 2026 17:17:57 +0800
 
 gxde-top-panel-plugins (4.10.9gxde0) unstable; urgency=low
 

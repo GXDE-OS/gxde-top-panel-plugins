@@ -18,7 +18,6 @@ DDEMpris2Plugin::DDEMpris2Plugin(QObject *parent) : QObject(parent) {
     connect(this->lyricFetcher, &AbstractLyricFetcher::lyricFetched, this, &DDEMpris2Plugin::lyricFetched);
 
     this->p_itemWidget = new DDEMpris2ItemWidget();
-    this->p_itemWidget->setFixedWidth(250);
     this->p_itemWidget->setTextAlign(Qt::AlignCenter);
     this->p_itemWidget->setText(this->defaultStr);
     connect(this->p_itemWidget, &DDEMpris2ItemWidget::prevClicked, this, &DDEMpris2Plugin::prev);
