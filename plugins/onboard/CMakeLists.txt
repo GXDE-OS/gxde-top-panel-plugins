@@ -1,5 +1,5 @@
 
-set(PLUGIN_NAME "power")
+set(PLUGIN_NAME "onboard")
 
 project(${PLUGIN_NAME})
 
@@ -13,8 +13,8 @@ find_package(DFrameworkdbusQt6 CONFIG REQUIRED)
 
 
 add_definitions("${QT_DEFINITIONS} -DQT_PLUGIN")
-add_library(${PLUGIN_NAME} SHARED ${SRCS} power.qrc)
-set_target_properties(${PLUGIN_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ../system-trays)
+add_library(${PLUGIN_NAME} SHARED ${SRCS} onboard.qrc)
+set_target_properties(${PLUGIN_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ../)
 target_include_directories(${PLUGIN_NAME} PUBLIC 
                                                  ../../interfaces)
 target_link_libraries(${PLUGIN_NAME} PRIVATE
