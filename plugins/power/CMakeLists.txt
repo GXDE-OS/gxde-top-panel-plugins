@@ -9,8 +9,7 @@ file(GLOB_RECURSE SRCS "*.h" "*.cpp" "../../widgets/*.h" "../../widgets/*.cpp")
 find_package(PkgConfig REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Widgets Svg DBus)
 find_package(Dtk6Widget REQUIRED)
-
-pkg_check_modules(DFrameworkDBus REQUIRED dframeworkdbus)
+find_package(DFrameworkdbusQt6 CONFIG REQUIRED)
 
 add_definitions("${QT_DEFINITIONS} -DQT_PLUGIN")
 add_library(${PLUGIN_NAME} SHARED ${SRCS} power.qrc)
@@ -22,7 +21,7 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
     Qt6::Widgets
     Qt6::Svg
     Qt6::DBus
-    ${DFrameworkDBus_LIBRARIES}
+    DFrameworkdbusQt6::DFrameworkdbusQt6
 )
 
 install(TARGETS ${PLUGIN_NAME} LIBRARY DESTINATION lib/dde-dock/plugins/system-trays)
