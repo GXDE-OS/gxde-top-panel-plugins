@@ -229,9 +229,13 @@ void WirelessList::updateAPList()
 
                 connect(apw, &AccessPointWidget::requestActiveAP, this, &WirelessList::activateAP);
                 connect(apw, &AccessPointWidget::requestDeactiveAP, this, &WirelessList::deactiveAP);
+                // 修复不断提示Qt信号槽连接语法错误的日志
+                /*connect(apw, &AccessPointWidget::requestActiveAP, this, [=] {
+                    m_clickedAPW = apw;
+                }, Qt::UniqueConnection);*/
                 connect(apw, &AccessPointWidget::requestActiveAP, this, [=] {
                     m_clickedAPW = apw;
-                }, Qt::UniqueConnection);
+                });
             }
         } else if (m_apList.size() < m_apwList.size()) {
             if (!m_apwList.isEmpty()) {
