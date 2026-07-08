@@ -21,8 +21,9 @@ find_package(Dtk6Widget REQUIRED)
 find_package(Dtk6Gui REQUIRED)
 find_package(Dtk6Core REQUIRED)
 find_package(DFrameworkdbusQt6 CONFIG REQUIRED)
+find_package(dbusmenu-lxqt CONFIG REQUIRED)
 
-pkg_check_modules(XCB_LIBS REQUIRED xcb-ewmh xcb xcb-image xcb-composite xtst x11 xext xcb-icccm dbusmenu-qt6)
+pkg_check_modules(XCB_LIBS REQUIRED xcb-ewmh xcb xcb-image xcb-composite xtst x11 xext xcb-icccm)
 pkg_check_modules(DDE-Network-Utils REQUIRED gxde-network-utils-qt6)
 pkg_check_modules(QGSettings REQUIRED gsettings-qt6)
 
@@ -33,6 +34,7 @@ target_include_directories(${PLUGIN_NAME} PUBLIC ${DtkGui_INCLUDE_DIRS}
                                                  ${XCB_LIBS_INCLUDE_DIRS}
                                                  ${DDE-Network-Utils_INCLUDE_DIRS}
                                                  ${QGSettings_INCLUDE_DIRS}
+                                                 ${dbusmenu-lxqt_INCLUDE_DIRS}
                                                  ../../interfaces
                                                  ../../frame)
 target_link_libraries(${PLUGIN_NAME} PRIVATE
@@ -44,6 +46,8 @@ target_link_libraries(${PLUGIN_NAME} PRIVATE
     Qt6::Svg
     ${XCB_LIBS_LIBRARIES}
     ${DDE-Network-Utils_LIBRARIES}
+    #${dbusmenu-lxqt_LIBRARIES}
+    dbusmenu-lxqt
     DFrameworkdbusQt6::DFrameworkdbusQt6
     ${QGSettings_LIBRARIES}
     pthread

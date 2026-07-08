@@ -20,7 +20,7 @@ Build-Depends: debhelper (>= 8.0.0),
  libgsettings-qt6-dev,
  cmake,
  libgxde-network-utils-qt6-dev (>= 1.0.0),
- libdbusmenu-qt6-dev,
+ libdbusmenu-lxqt-dev,
  clang [mips64el],
  libdtk6gui-dev
 Standards-Version: 3.9.8
