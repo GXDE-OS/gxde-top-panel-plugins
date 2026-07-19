@@ -12,33 +12,28 @@ find_package(PkgConfig REQUIRED)
 find_package(Qt6 REQUIRED COMPONENTS Widgets Concurrent DBus Svg Gui)
 find_package(Dtk6Widget REQUIRED)
 find_package(Dtk6CMake REQUIRED)
+find_package(Dtk6GUI REQUIRED)
+find_package(DFrameworkdbusQt6 CONFIG REQUIRED)
 
 pkg_check_modules(XCB_EWMH REQUIRED xcb-ewmh x11)
-pkg_check_modules(DFrameworkDBus REQUIRED dframeworkdbus)
-pkg_check_modules(QGSettings REQUIRED gsettings-qt)
-pkg_check_modules(DtkGUI REQUIRED dtkgui)
+pkg_check_modules(QGSettings REQUIRED gsettings-qt6)
 
 # driver-manager
 add_executable(${BIN_NAME} ${SRCS} ${INTERFACES} item/item.qrc frame.qrc)
-target_include_directories(${BIN_NAME} PUBLIC ${Dtk6Widget_INCLUDE_DIRS}
-                                              ${XCB_EWMH_INCLUDE_DIRS}
-                                              ${DFrameworkDBus_INCLUDE_DIRS}
-                                              ${Qt6Gui_PRIVATE_INCLUDE_DIRS}
+target_include_directories(${BIN_NAME} PUBLIC ${XCB_EWMH_INCLUDE_DIRS}
                                               ${PROJECT_BINARY_DIR}
                                               ${QGSettings_INCLUDE_DIRS}
-                                              ${DtkGUI_INCLUDE_DIRS}
-                                              ${Qt6Svg_INCLUDE_DIRS}
                                               ../interfaces)
 
 target_link_libraries(${BIN_NAME} PRIVATE
     ${XCB_EWMH_LIBRARIES}
-    ${DFrameworkDBus_LIBRARIES}
-    ${Dtk6Widget_LIBRARIES}
+    DFrameworkdbusQt6::DFrameworkdbusQt6
+    Dtk6::Widget
     Qt6::Widgets
     Qt6::Concurrent
     Qt6::DBus
     ${QGSettings_LIBRARIES}
-    ${DtkGUI_LIBRARIES}
+    Dtk6::Gui
     Qt6::Svg
 )
 
