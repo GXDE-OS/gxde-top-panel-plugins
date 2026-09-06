@@ -1,5 +1,6 @@
-gxde-top-panel-plugins (6.0.5) UNRELEASED; urgency=medium
+gxde-top-panel-plugins (6.0.5-1) UNRELEASED; urgency=medium
 
+  [ gfdgd_xi ]
   * Support hide dde dock 
   * chroot 下不显示电源按钮
   * dde-dock=>gxde-dock
@@ -19,7 +20,10 @@ gxde-top-panel-plugins (6.0.5) UNRELEASED; urgency=medium
   * 修复不断提示Qt信号槽连接语法错误的日志
   * 修复软件托盘右键菜单功能无效的问题（https://gitee.com/GXDE-OS/gxde-top-panel/issues/IJYRXR ）
 
- -- gfdgd_xi <3025613752@qq.com>  Wed, 08 Jul 2026 10:52:23 +0800
+  [ CharOfString ]
+  * Use the GXDE DBusMenu Qt 6 package.
+
+ -- CharOfString <root@charofstring.cc>  Sun, 06 Sep 2026 17:18:42 -0500
 
 gxde-top-panel-plugins (4.10.9gxde0) unstable; urgency=low
 
