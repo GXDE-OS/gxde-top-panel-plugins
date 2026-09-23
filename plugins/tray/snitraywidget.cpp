@@ -413,9 +413,9 @@ void SNITrayWidget::onSNIIconThemePathChanged(const QString &value)
     m_updateIconTimer->start();
 }
 
-void SNITrayWidget::onSNIIdChanged(const QString &value)
-{
+void SNITrayWidget::onSNIIdChanged(const QString &value) {
     m_sniId = value;
+    m_updateIconTimer->start();
 }
 
 void SNITrayWidget::onSNIMenuChanged(const QDBusObjectPath &value)
@@ -478,6 +478,21 @@ void SNITrayWidget::resizeEvent(QResizeEvent *e)
     AbstractTrayWidget::resizeEvent(e);
     // 图标像素图是按控件尺寸生成的，尺寸变化后需要重新生成
     m_updateIconTimer->start();
+}
+
+bool SNITrayWidget::isInputMethod() const {
+    static const QStringList inputMethodIds {
+        QStringLiteral("fcitx"), QStringLiteral("ibus"),
+        QStringLiteral("kimpanel"), QStringLiteral("sogou"),
+    };
+
+    for (const QString &id : inputMethodIds) {
+        if (m_sniId.contains(id, Qt::CaseInsensitive)
+                || m_dbusService.contains(id, Qt::CaseInsensitive)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 QPixmap SNITrayWidget::newIconPixmap(IconType iconType)
@@ -569,12 +584,6 @@ QPixmap SNITrayWidget::newIconPixmap(IconType iconType)
         if (!iconName.isEmpty()) {
             // ThemeAppIcon::getIcon 会处理高分屏缩放问题
             pixmap = ThemeAppIcon::getIcon(iconName, drawSize, devicePixelRatioF());
-            // 只有主题里的 symbolic 图标（通常画成白色）在浅色面板上染深；
-            // 应用自己提供的像素图/图片文件保持原色，不做反色
-            if (!pixmap.isNull() && iconName.endsWith(QLatin1String("-symbolic"))
-                    && DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
-                pixmap = ImageUtil::tintWhitePixels(pixmap, QColor(40, 40, 40));
-            }
             if (!pixmap.isNull()) {
                 break;
             }
@@ -584,6 +593,12 @@ QPixmap SNITrayWidget::newIconPixmap(IconType iconType)
             qDebug() << "get icon faild!" << iconType;
         }
     } while (false);
+
+    // Only tinting IME
+    if (!pixmap.isNull() && isInputMethod()) {
+        const bool dark = DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::DarkType;
+        pixmap = ImageUtil::tintGrayPixels(pixmap, dark ? QColor(235, 235, 235) : QColor(40, 40, 40));
+    }
 
     return pixmap;
 }

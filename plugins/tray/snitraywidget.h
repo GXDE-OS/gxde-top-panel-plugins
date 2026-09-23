@@ -104,6 +104,7 @@ private Q_SLOTS:
 private:
     void paintEvent(QPaintEvent *e) Q_DECL_OVERRIDE;
     void resizeEvent(QResizeEvent *e) Q_DECL_OVERRIDE;
+    bool isInputMethod() const;
     QPixmap newIconPixmap(IconType iconType);
 
 private:

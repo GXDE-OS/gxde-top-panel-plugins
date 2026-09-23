@@ -50,6 +50,31 @@ QPixmap ImageUtil::tintWhitePixels(const QPixmap &pixmap, const QColor &color)
     return result;
 }
 
+QPixmap ImageUtil::tintGrayPixels(const QPixmap &pixmap, const QColor &color) {
+    if (pixmap.isNull()) {
+        return pixmap;
+    }
+
+    QImage image = pixmap.toImage().convertToFormat(QImage::Format_ARGB32);
+    for (int y = 0; y < image.height(); ++y) {
+        QRgb *line = reinterpret_cast<QRgb *>(image.scanLine(y));
+        for (int x = 0; x < image.width(); ++x) {
+            const QRgb px = line[x];
+            const int alpha = qAlpha(px);
+            if (alpha == 0) {
+                continue;
+            }
+            const int r = qRed(px), g = qGreen(px), b = qBlue(px);
+            if (qMax(r, qMax(g, b)) - qMin(r, qMin(g, b)) < 40)
+                line[x] = qRgba(color.red(), color.green(), color.blue(), alpha);
+        }
+    }
+
+    QPixmap result = QPixmap::fromImage(image);
+    result.setDevicePixelRatio(pixmap.devicePixelRatio());
+    return result;
+}
+
 const QPixmap ImageUtil::loadSvg(const QString &iconName, const QString &localPath, const int size, const qreal ratio)
 {
     QIcon icon = QIcon::fromTheme(iconName);
