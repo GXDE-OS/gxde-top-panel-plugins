@@ -4,7 +4,7 @@
 namespace Dock {
 
 #define SpliterSize 2
-#define TraySpace 10
+#define TraySpace 8
 #define TrayWidgetWidthMin 24
 #define TrayWidgetHeightMin 24
 

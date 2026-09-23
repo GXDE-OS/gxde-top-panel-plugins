@@ -7,6 +7,12 @@ DDEMpris2ItemWidget::DDEMpris2ItemWidget(QWidget *parent) :
     ui(new Ui::DDEMpris2ItemWidget)
 {
     ui->setupUi(this);
+    // 显式固定图标尺寸并去掉按钮底色，避免随样式/DPR 变化忽大忽小
+    for (QToolButton *button : {ui->prevButton, ui->playPauseButton, ui->nextButton}) {
+        button->setIconSize(QSize(16, 16));
+        button->setAutoRaise(true);
+        button->setStyleSheet("QToolButton { background: transparent; border: none; }");
+    }
     this->setThemeIcon(false);
 
     ui->entryLabel->hide();
@@ -59,8 +65,7 @@ void DDEMpris2ItemWidget::setDesktopEntry(QString entry) {
     } else {
         ui->entryLabel->show();
         QIcon icon = QIcon::fromTheme(this->currEntry);
-        QPixmap pixmap = icon.pixmap(ui->entryLabel->sizeHint() * ui->entryLabel->devicePixelRatioF());
-        pixmap.setDevicePixelRatio(ui->entryLabel->devicePixelRatioF());
+        QPixmap pixmap = icon.pixmap(ui->entryLabel->size(), ui->entryLabel->devicePixelRatioF());
         ui->entryLabel->setPixmap(pixmap);
     }
 }

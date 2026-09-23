@@ -85,33 +85,6 @@ void FashionTrayWidgetWrapper::paintEvent(QPaintEvent *event)
     if (m_dragging) {
         return;
     }
-
-    // 平时不画背景泡泡，只在悬停/按下时给轻微反馈
-    if (rect().height() > PLUGIN_BACKGROUND_MIN_SIZE && (m_hover || m_pressed)) {
-        QPainter painter(this);
-        painter.setRenderHint(QPainter::Antialiasing, true);
-
-        QColor color;
-        if (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
-            color = Qt::black;
-            painter.setOpacity(m_pressed ? 0.3 : 0.2);
-        } else {
-            color = Qt::white;
-            painter.setOpacity(m_pressed ? 0.05 : 0.2);
-        }
-
-        DStyleHelper dstyle(style());
-        const int radius = dstyle.pixelMetric(DStyle::PM_FrameRadius);
-
-        QPainterPath path;
-
-        int minSize = std::min(width(), height());
-        QRect rc(0, 0, minSize, minSize);
-        rc.moveTo(rect().center() - rc.center());
-
-        path.addRoundedRect(rc, radius, radius);
-        painter.fillPath(path, color);
-    }
 }
 
 void FashionTrayWidgetWrapper::mousePressEvent(QMouseEvent *event)

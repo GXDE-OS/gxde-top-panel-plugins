@@ -185,14 +185,7 @@ void TrashWidget::updateIcon()
     if (displayMode == Dock::Efficient)
         iconString.append("-symbolic");
 
-    int size = std::min(width(), height());
-    if (size < PLUGIN_ICON_MIN_SIZE)
-        size = PLUGIN_ICON_MIN_SIZE;
-    if (size > PLUGIN_BACKGROUND_MAX_SIZE) {
-        size *= ((Dock::Fashion == qApp->property(PROP_DISPLAY_MODE).value<Dock::DisplayMode>()) ? 0.8 : 0.7);
-        if (size < PLUGIN_BACKGROUND_MAX_SIZE)
-            size = PLUGIN_BACKGROUND_MAX_SIZE;
-    }
+    const int size = PLUGIN_ICON_MAX_SIZE * 0.8;
 
 
     QIcon icon = QIcon::fromTheme(iconString, m_defaulticon);

@@ -53,35 +53,21 @@ void ShutdownWidget::paintEvent(QPaintEvent *e)
 
     QPixmap pixmap;
     QString iconName = "system-shutdown";
-    int iconSize = PLUGIN_ICON_MAX_SIZE;
+    // 与其他状态图标统一为 16px
+    int iconSize = PLUGIN_ICON_MAX_SIZE * 0.8;
 
     QPainter painter(this);
 
     if (rect().height() > PLUGIN_BACKGROUND_MIN_SIZE) {
-
+      // 平时不画背景泡泡，只在悬停/按下时给轻微反馈
+      if (m_hover || m_pressed) {
         QColor color;
         if (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
             color = Qt::black;
-            painter.setOpacity(0.5);
-
-            if (m_hover) {
-                painter.setOpacity(0.6);
-            }
-
-            if (m_pressed) {
-                painter.setOpacity(0.3);
-            }
+            painter.setOpacity(m_pressed ? 0.3 : 0.2);
         } else {
             color = Qt::white;
-            painter.setOpacity(0.1);
-
-            if (m_hover) {
-                painter.setOpacity(0.2);
-            }
-
-            if (m_pressed) {
-                painter.setOpacity(0.05);
-            }
+            painter.setOpacity(m_pressed ? 0.05 : 0.2);
         }
 
         painter.setRenderHint(QPainter::Antialiasing, true);
@@ -97,6 +83,7 @@ void ShutdownWidget::paintEvent(QPaintEvent *e)
 
         path.addRoundedRect(rc, radius, radius);
         painter.fillPath(path, color);
+      }
     } else if (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
         // 最小尺寸时，不画背景，采用深色图标
         iconName.append(PLUGIN_MIN_ICON_NAME);

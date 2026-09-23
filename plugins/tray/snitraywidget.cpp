@@ -508,12 +508,7 @@ QPixmap SNITrayWidget::newIconPixmap(IconType iconType)
     }
 
     const auto ratio = devicePixelRatioF();
-    // 图标按控件实际大小绘制（预留 20% 边距），控件尚未布局时退回 IconSize；
-    // 固定小尺寸会把高分辨率的 SNI 像素图压糊
-    int drawSize = qRound(qMin(width(), height()) * 0.8);
-    if (drawSize < IconSize) {
-        drawSize = IconSize;
-    }
+    const int drawSize = qRound(IconSize * 0.8);
     const int iconSizeScaled = qRound(drawSize * ratio);
     do {
         // load icon from sni dbus

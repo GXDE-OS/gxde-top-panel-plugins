@@ -106,6 +106,34 @@ void TrayPlugin::init(PluginProxyInterface *proxyInter)
     QTimer::singleShot(0, this, &TrayPlugin::initXEmbed);
 }
 
+const QString TrayPlugin::pluginDisplayName() const
+{
+    return tr("System Tray");
+}
+
+void TrayPlugin::pluginStateSwitched()
+{
+    m_proxyInter->saveValue(this, PLUGIN_ENABLED_KEY, pluginIsDisable());
+
+    if (pluginIsDisable()) {
+        if (m_pluginLoaded) {
+            m_fashionItem->clearTrayWidgets();
+            m_proxyInter->itemRemoved(this, FASHION_MODE_ITEM_KEY);
+            for (auto itemKey : m_trayMap.keys()) {
+                m_proxyInter->itemRemoved(this, itemKey);
+            }
+        }
+        return;
+    }
+
+    if (!m_pluginLoaded) {
+        init(m_proxyInter);
+        return;
+    }
+
+    switchToMode(displayMode());
+}
+
 bool TrayPlugin::pluginIsDisable()
 {
     // NOTE(justforlxz): local config

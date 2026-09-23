@@ -367,7 +367,7 @@ void FashionTrayItem::resizeTray()
         m_attentionContainer->setFixedWidth(m_iconSize * m_attentionContainer->itemCount());
         m_attentionContainer->setFixedHeight(QWIDGETSIZE_MAX);
 
-        m_controlWidget->setFixedSize(m_iconSize, QWIDGETSIZE_MAX);
+        m_controlWidget->setFixedSize(m_iconSize * 2 / 3, QWIDGETSIZE_MAX);
     } else {
         m_holdContainer->setFixedWidth(QWIDGETSIZE_MAX);
         if (m_attentionContainer->itemCount() != 0){
