@@ -52,55 +52,48 @@ void OnboardItem::paintEvent(QPaintEvent *e)
     Q_UNUSED(e);
 
     QPixmap pixmap;
-    QString iconName = "deepin-virtualkeyboard";
+    // 只画按键图形（白色、透明背景），不走主题查找；
+    // 主题里的 deepin-virtualkeyboard 是带卡片底的图标，且 SVG 带 Qt 不支持的 filter
+    QString iconName = ":/icons/icon/keyboard-keys.svg";
     int iconSize = PLUGIN_ICON_MAX_SIZE;
 
     QPainter painter(this);
     if (std::min(width(), height()) > PLUGIN_BACKGROUND_MIN_SIZE) {
-
-        QColor color;
-        if (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
-            color = Qt::black;
-            painter.setOpacity(0.5);
-
-            if (m_hover) {
-                painter.setOpacity(0.6);
+        // 平时不画背景泡泡，只在悬停/按下时给轻微反馈
+        if (m_hover || m_pressed) {
+            QColor color;
+            if (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
+                color = Qt::black;
+                painter.setOpacity(m_pressed ? 0.3 : 0.2);
+            } else {
+                color = Qt::white;
+                painter.setOpacity(m_pressed ? 0.05 : 0.2);
             }
 
-            if (m_pressed) {
-                painter.setOpacity(0.3);
-            }
-        } else {
-            color = Qt::white;
-            painter.setOpacity(0.1);
+            painter.setRenderHint(QPainter::Antialiasing, true);
 
-            if (m_hover) {
-                painter.setOpacity(0.2);
-            }
+            DStyleHelper dstyle(style());
+            const int radius = dstyle.pixelMetric(DStyle::PM_FrameRadius);
 
-            if (m_pressed) {
-                painter.setOpacity(0.05);
-            }
+            QPainterPath path;
+
+            int minSize = std::min(width(), height());
+            QRect rc(0, 0, minSize, minSize);
+            rc.moveTo(rect().center() - rc.center());
+
+            path.addRoundedRect(rc, radius, radius);
+            painter.fillPath(path, color);
         }
-
-        painter.setRenderHint(QPainter::Antialiasing, true);
-
-        DStyleHelper dstyle(style());
-        const int radius = dstyle.pixelMetric(DStyle::PM_FrameRadius);
-
-        QPainterPath path;
-
-        int minSize = std::min(width(), height());
-        QRect rc(0, 0, minSize, minSize);
-        rc.moveTo(rect().center() - rc.center());
-
-        path.addRoundedRect(rc, radius, radius);
-        painter.fillPath(path, color);
-    } else if (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
-        iconName.append(PLUGIN_MIN_ICON_NAME);
     }
 
     pixmap = loadSvg(iconName, QSize(iconSize, iconSize));
+
+    // 浅色面板下把白色按键着成深灰，否则看不见
+    if (!pixmap.isNull() && DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
+        QPainter pixPainter(&pixmap);
+        pixPainter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+        pixPainter.fillRect(pixmap.rect(), QColor(50, 50, 50));
+    }
 
     painter.setOpacity(1);
     const QRectF &rf = QRectF(rect());
@@ -113,7 +106,11 @@ const QPixmap OnboardItem::loadSvg(const QString &fileName, const QSize &size) c
     const auto ratio = devicePixelRatioF();
 
     QPixmap pixmap;
-    pixmap = QIcon::fromTheme(fileName, m_icon).pixmap(size * ratio);
+    if (fileName.startsWith(":")) {
+        pixmap = QIcon(fileName).pixmap(size * ratio);
+    } else {
+        pixmap = QIcon::fromTheme(fileName, m_icon).pixmap(size * ratio);
+    }
     pixmap.setDevicePixelRatio(ratio);
 
     return pixmap;

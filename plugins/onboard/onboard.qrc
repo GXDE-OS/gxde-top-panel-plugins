@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/icons">
         <file>icon/deepin-virtualkeyboard.svg</file>
+        <file>icon/keyboard-keys.svg</file>
     </qresource>
 </RCC>

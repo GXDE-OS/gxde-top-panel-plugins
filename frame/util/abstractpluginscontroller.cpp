@@ -42,6 +42,12 @@ AbstractPluginsController::AbstractPluginsController(QObject *parent)
 {
     qApp->installEventFilter(this);
 
+    // deepin 的 dock daemon 未运行时（GXDE / Wayland 环境），同步 DBus 调用
+    // 会触发服务激活并等满 25s 超时，导致托盘插件初始化卡住；直接快速失败
+    if (!m_dbusDaemonInterface->isServiceRegistered("com.deepin.dde.daemon.Dock").value()) {
+        m_dockDaemonInter->setTimeout(1);
+    }
+
     refreshPluginSettings();
 
     connect(m_dockDaemonInter, &DockDaemonInter::PluginSettingsSynced, this, &AbstractPluginsController::refreshPluginSettings, Qt::QueuedConnection);

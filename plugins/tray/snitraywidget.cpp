@@ -25,6 +25,9 @@
 #include <dbusmenu-lxqt/dbusmenuimporter.h>
 #include <QPainter>
 #include <QApplication>
+#include <QResizeEvent>
+
+#include <algorithm>
 
 #include <xcb/xproto.h>
 
@@ -462,6 +465,13 @@ void SNITrayWidget::paintEvent(QPaintEvent *e)
     painter.end();
 }
 
+void SNITrayWidget::resizeEvent(QResizeEvent *e)
+{
+    AbstractTrayWidget::resizeEvent(e);
+    // 图标像素图是按控件尺寸生成的，尺寸变化后需要重新生成
+    m_updateIconTimer->start();
+}
+
 QPixmap SNITrayWidget::newIconPixmap(IconType iconType)
 {
     QPixmap pixmap;
@@ -495,11 +505,22 @@ QPixmap SNITrayWidget::newIconPixmap(IconType iconType)
     }
 
     const auto ratio = devicePixelRatioF();
-    const int iconSizeScaled = IconSize * ratio;
+    // 图标按控件实际大小绘制（预留 20% 边距），控件尚未布局时退回 IconSize；
+    // 固定小尺寸会把高分辨率的 SNI 像素图压糊
+    int drawSize = qRound(qMin(width(), height()) * 0.8);
+    if (drawSize < IconSize) {
+        drawSize = IconSize;
+    }
+    const int iconSizeScaled = qRound(drawSize * ratio);
     do {
         // load icon from sni dbus
         if (!dbusImageList.isEmpty() && !dbusImageList.first().pixels.isEmpty()) {
-            for (DBusImage dbusImage : dbusImageList) {
+            // 优先使用尺寸最大的一张，缩小比放大质量好
+            DBusImageList sortedList = dbusImageList;
+            std::sort(sortedList.begin(), sortedList.end(), [](const DBusImage &a, const DBusImage &b) {
+                return a.width * a.height > b.width * b.height;
+            });
+            for (DBusImage dbusImage : sortedList) {
                 char *image_data = dbusImage.pixels.data();
 
                 if (QSysInfo::ByteOrder == QSysInfo::LittleEndian) {
@@ -508,8 +529,10 @@ QPixmap SNITrayWidget::newIconPixmap(IconType iconType)
                     }
                 }
 
+                // 平滑缩放必须在预乘 alpha 格式上进行，否则透明边缘会渗色出现毛边
                 QImage image((const uchar *)dbusImage.pixels.constData(), dbusImage.width, dbusImage.height, QImage::Format_ARGB32);
-                pixmap = QPixmap::fromImage(image.scaled(iconSizeScaled, iconSizeScaled, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                pixmap = QPixmap::fromImage(image.convertToFormat(QImage::Format_ARGB32_Premultiplied)
+                                                .scaled(iconSizeScaled, iconSizeScaled, Qt::KeepAspectRatio, Qt::SmoothTransformation));
                 pixmap.setDevicePixelRatio(ratio);
                 if (!pixmap.isNull()) {
                     break;
@@ -524,7 +547,8 @@ QPixmap SNITrayWidget::newIconPixmap(IconType iconType)
                 it.next();
                 if (it.fileName().startsWith(iconName, Qt::CaseInsensitive)) {
                     QImage image(it.filePath());
-                    pixmap = QPixmap::fromImage(image.scaled(iconSizeScaled, iconSizeScaled, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+                    pixmap = QPixmap::fromImage(image.convertToFormat(QImage::Format_ARGB32_Premultiplied)
+                                                    .scaled(iconSizeScaled, iconSizeScaled, Qt::KeepAspectRatio, Qt::SmoothTransformation));
                     pixmap.setDevicePixelRatio(ratio);
                     if (!pixmap.isNull()) {
                         break;
@@ -541,7 +565,7 @@ QPixmap SNITrayWidget::newIconPixmap(IconType iconType)
         // so, it should be the last fallback
         if (!iconName.isEmpty()) {
             // ThemeAppIcon::getIcon 会处理高分屏缩放问题
-            pixmap = ThemeAppIcon::getIcon(iconName, IconSize, devicePixelRatioF());
+            pixmap = ThemeAppIcon::getIcon(iconName, drawSize, devicePixelRatioF());
             if (!pixmap.isNull()) {
                 break;
             }
