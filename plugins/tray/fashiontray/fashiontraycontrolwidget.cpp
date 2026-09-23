@@ -23,6 +23,7 @@
 
 #include <QMouseEvent>
 #include <QPainter>
+#include <QSvgRenderer>
 #include <QPainterPath>
 #include <DHiDPIHelper>
 #include <DStyle>
@@ -193,5 +194,15 @@ void FashionTrayControlWidget::refreshArrowPixmap()
     }
 
     const auto ratio = devicePixelRatioF();
-    m_arrowPix = ImageUtil::loadSvg(iconPath, ":/icons/resources/", PLUGIN_ICON_MAX_SIZE, ratio);
+
+    const int arrowSize = 14;
+    const int sizeScaled = int(arrowSize * ratio);
+    QPixmap pixmap(sizeScaled, sizeScaled);
+    pixmap.fill(Qt::transparent);
+    QSvgRenderer renderer(QString(":/icons/resources/%1.svg").arg(iconPath));
+    QPainter svgPainter(&pixmap);
+    renderer.render(&svgPainter);
+    svgPainter.end();
+    pixmap.setDevicePixelRatio(ratio);
+    m_arrowPix = pixmap;
 }
