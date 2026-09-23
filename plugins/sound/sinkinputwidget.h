@@ -48,6 +48,10 @@ private slots:
 
 private:
     void refreshIcon();
+    void updateTitle();
+
+protected:
+    void resizeEvent(QResizeEvent *event) override;
 
 private:
     DBusSinkInput *m_inputInter;
@@ -57,6 +61,7 @@ private:
     QLabel *m_volumeIconMax;
     VolumeSlider *m_volumeSlider;
     TipsWidget *m_volumeLabel;
+    TipsWidget *m_titleLabel;
 };
 
 #endif // SINKINPUTWIDGET_H

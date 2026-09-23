@@ -23,6 +23,7 @@
 #include "../frame/util/imageutil.h"
 
 #include <QHBoxLayout>
+#include <QResizeEvent>
 #include <QIcon>
 #include <QApplication>
 #include <DHiDPIHelper>
@@ -30,7 +31,6 @@
 #include <DApplication>
 
 #define ICON_SIZE   24
-#define APP_TITLE_SIZE 150
 
 DWIDGET_USE_NAMESPACE
 DGUI_USE_NAMESPACE
@@ -51,19 +51,21 @@ SinkInputWidget::SinkInputWidget(const QString &inputPath, QWidget *parent)
     , m_appBtn(new QPushButton(this))
     , m_volumeSlider(new VolumeSlider(this))
     , m_volumeLabel(new TipsWidget(this))
+    , m_titleLabel(new TipsWidget(this))
 {
     const QString iconName = m_inputInter->icon();
     m_appBtn->setAccessibleName("app-" + iconName + "-icon");
     m_appBtn->setIcon(QIcon(getIconFromTheme(iconName, QSize(ICON_SIZE, ICON_SIZE), devicePixelRatioF())));
     m_appBtn->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
-
-    TipsWidget *titleLabel = new TipsWidget;
-    titleLabel->setText(fontMetrics().elidedText(m_inputInter->name(), Qt::TextElideMode::ElideRight, APP_TITLE_SIZE));
+    // 扁平按钮，不画灰色方块背景
+    m_appBtn->setFlat(true);
+    m_appBtn->setFixedSize(ICON_SIZE, ICON_SIZE);
 
     m_volumeBtnMin->setAccessibleName("volume-button");
     m_volumeBtnMin->setFixedSize(ICON_SIZE, ICON_SIZE);
     m_volumeBtnMin->setIcon(QIcon(DHiDPIHelper::loadNxPixmap("://audio-volume-low-symbolic.svg")));
     m_volumeBtnMin->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
+    m_volumeBtnMin->setFlat(true);
 
     m_volumeIconMax->setFixedSize(ICON_SIZE, ICON_SIZE);
 
@@ -74,9 +76,11 @@ SinkInputWidget::SinkInputWidget(const QString &inputPath, QWidget *parent)
     // 应用图标+名称
     QHBoxLayout *appLayout = new QHBoxLayout();
     appLayout->setAlignment(Qt::AlignLeft);
+    // 与下方音量按钮、标题栏的 2px 缩进对齐
+    appLayout->addSpacing(2);
     appLayout->addWidget(m_appBtn);
     appLayout->addSpacing(10);
-    appLayout->addWidget(titleLabel);
+    appLayout->addWidget(m_titleLabel);
     appLayout->addStretch();
     appLayout->addWidget(m_volumeLabel, 0, Qt::AlignRight);
     appLayout->setSpacing(0);
@@ -110,6 +114,7 @@ SinkInputWidget::SinkInputWidget(const QString &inputPath, QWidget *parent)
         m_volumeSlider->setValue(m_inputInter->volume() * 1000);
         QString str = QString::number(int(m_inputInter->volume() * 100)) + '%';
         m_volumeLabel->setText(str);
+        updateTitle();
         refreshIcon();
     });
     connect(DGuiApplicationHelper::instance(), &DGuiApplicationHelper::themeTypeChanged, this, &SinkInputWidget::refreshIcon);
@@ -124,6 +129,21 @@ SinkInputWidget::SinkInputWidget(const QString &inputPath, QWidget *parent)
     onVolumeChanged();
 
     emit m_inputInter->VolumeChanged();
+}
+
+void SinkInputWidget::updateTitle()
+{
+    // 应用名按标题控件自己的字体、这一行实际剩余的宽度截断，
+    // 否则会和右侧的百分比重叠
+    const int available = width() - 2 - ICON_SIZE - 10 - m_volumeLabel->width() - 8;
+    m_titleLabel->setText(m_titleLabel->fontMetrics().elidedText(
+        m_inputInter->name(), Qt::ElideRight, qMax(0, available)));
+}
+
+void SinkInputWidget::resizeEvent(QResizeEvent *event)
+{
+    QWidget::resizeEvent(event);
+    updateTitle();
 }
 
 void SinkInputWidget::setVolume(const int value)

@@ -93,9 +93,17 @@ SoundApplet::SoundApplet(QWidget *parent)
     TipsWidget *appLabel = new TipsWidget;
     appLabel->setText(tr("Application"));
 
+    // 与上方「Device」一行的 2px 缩进对齐
+    QHBoxLayout *appLabelLayout = new QHBoxLayout;
+    appLabelLayout->setContentsMargins(0, 0, 0, 0);
+    appLabelLayout->setSpacing(0);
+    appLabelLayout->addSpacing(2);
+    appLabelLayout->addWidget(appLabel);
+    appLabelLayout->addStretch();
+
     QVBoxLayout *appLineHLayout = new QVBoxLayout;
     appLineHLayout->addWidget(new HorizontalSeparator);
-    appLineHLayout->addWidget(appLabel);
+    appLineHLayout->addLayout(appLabelLayout);
     appLineHLayout->setContentsMargins(0, 0, 0, 0);
     appLineHLayout->setSpacing(10);
 
@@ -111,6 +119,8 @@ SoundApplet::SoundApplet(QWidget *parent)
 
     m_volumeBtn->setFixedSize(ICON_SIZE, ICON_SIZE);
     m_volumeBtn->setIconSize(QSize(ICON_SIZE, ICON_SIZE));
+    // 扁平按钮，不画灰色方块背景
+    m_volumeBtn->setFlat(true);
     m_volumeSlider->setMinimum(0);
     m_volumeSlider->setMaximum(m_audioInter->maxUIVolume() * 1000.0f);
 
