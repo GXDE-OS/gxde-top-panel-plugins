@@ -67,7 +67,7 @@ const QPixmap OverlayWarningWidget::loadSvg(const QString &fileName, const QSize
     const auto ratio = devicePixelRatioF();
 
     QPixmap pixmap;
-    pixmap = QIcon::fromTheme(fileName).pixmap(size * ratio);
+    pixmap = QIcon::fromTheme(fileName).pixmap(size, ratio);
     pixmap.setDevicePixelRatio(ratio);
 
     return pixmap;

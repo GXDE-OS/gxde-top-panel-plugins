@@ -116,7 +116,7 @@ const QPixmap ShutdownWidget::loadSvg(const QString &fileName, const QSize &size
     const auto ratio = devicePixelRatioF();
 
     QPixmap pixmap;
-    pixmap = QIcon::fromTheme(fileName, m_icon).pixmap(size * ratio);
+    pixmap = QIcon::fromTheme(fileName, m_icon).pixmap(size, ratio);
     pixmap.setDevicePixelRatio(ratio);
 
     return pixmap;

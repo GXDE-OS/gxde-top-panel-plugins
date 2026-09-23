@@ -98,7 +98,11 @@ void OnboardItem::paintEvent(QPaintEvent *e)
     painter.setOpacity(1);
     const QRectF &rf = QRectF(rect());
     const QRectF &rfp = QRectF(pixmap.rect());
-    painter.drawPixmap(rf.center() - rfp.center() / devicePixelRatioF(), pixmap);
+    // 分数 DPR 下把绘制点对齐到物理像素网格，否则会比相邻图标低半个像素
+    const qreal dpr = devicePixelRatioF();
+    QPointF p = rf.center() - rfp.center() / dpr;
+    p = QPointF(qRound(p.x() * dpr) / dpr, qRound(p.y() * dpr) / dpr);
+    painter.drawPixmap(p, pixmap);
 }
 
 const QPixmap OnboardItem::loadSvg(const QString &fileName, const QSize &size) const
@@ -107,9 +111,17 @@ const QPixmap OnboardItem::loadSvg(const QString &fileName, const QSize &size) c
 
     QPixmap pixmap;
     if (fileName.startsWith(":")) {
-        pixmap = QIcon(fileName).pixmap(size * ratio);
+        // QIcon 的文件引擎对 DPR 参数不可靠，用 QSvgRenderer 按物理像素精确渲染
+        QSvgRenderer renderer(fileName);
+        QSizeF glyph = renderer.defaultSize();
+        glyph.scale(QSizeF(size) * ratio, Qt::KeepAspectRatio);
+        pixmap = QPixmap(glyph.toSize());
+        pixmap.fill(Qt::transparent);
+        QPainter svgPainter(&pixmap);
+        renderer.render(&svgPainter);
+        svgPainter.end();
     } else {
-        pixmap = QIcon::fromTheme(fileName, m_icon).pixmap(size * ratio);
+        pixmap = QIcon::fromTheme(fileName, m_icon).pixmap(size, ratio);
     }
     pixmap.setDevicePixelRatio(ratio);
 

@@ -28,7 +28,7 @@ const QPixmap ImageUtil::loadSvg(const QString &iconName, const QString &localPa
 {
     QIcon icon = QIcon::fromTheme(iconName);
     if (!icon.isNull()) {
-        QPixmap pixmap = icon.pixmap(int(size * ratio), int(size * ratio));
+        QPixmap pixmap = icon.pixmap(QSize(size, size), ratio);
         pixmap.setDevicePixelRatio(ratio);
         return pixmap;
     }

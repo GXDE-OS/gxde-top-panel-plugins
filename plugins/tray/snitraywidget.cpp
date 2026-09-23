@@ -455,7 +455,10 @@ void SNITrayWidget::paintEvent(QPaintEvent *e)
 
     const QRectF &rf = QRect(rect());
     const QRectF &rfp = QRect(m_pixmap.rect());
-    const QPointF &p = rf.center() - rfp.center() / m_pixmap.devicePixelRatioF();
+    // 分数 DPR 下把绘制点对齐到物理像素网格，避免与相邻图标错开半个像素
+    const qreal dpr = m_pixmap.devicePixelRatioF();
+    QPointF p = rf.center() - rfp.center() / dpr;
+    p = QPointF(qRound(p.x() * dpr) / dpr, qRound(p.y() * dpr) / dpr);
     painter.drawPixmap(p, m_pixmap);
 
     if (!m_overlayPixmap.isNull()) {

@@ -99,7 +99,8 @@ QPixmap PowerStatusWidget::getBatteryIcon()
         iconStr.append(PLUGIN_MIN_ICON_NAME);
 
     const auto ratio = devicePixelRatioF();
-    QPixmap pix = QIcon::fromTheme(iconStr).pixmap(QSize(20, 20) * ratio);
+    // 与 sound/network 等状态图标统一为 16px 视觉大小
+    QPixmap pix = QIcon::fromTheme(iconStr).pixmap(QSize(16, 16), ratio);
     pix.setDevicePixelRatio(ratio);
 
     return pix;

@@ -37,7 +37,7 @@ DGUI_USE_NAMESPACE
 
 const QPixmap getIconFromTheme(const QString &name, const QSize &size, const qreal ratio)
 {
-    QPixmap ret = QIcon::fromTheme(name, QIcon::fromTheme("application-x-desktop")).pixmap(size * ratio);
+    QPixmap ret = QIcon::fromTheme(name, QIcon::fromTheme("application-x-desktop")).pixmap(size, ratio);
     ret.setDevicePixelRatio(ratio);
 
     return ret;
@@ -145,7 +145,7 @@ void SinkInputWidget::setMuteIcon()
         if (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
             iconString.append("-dark");
         }
-        QPixmap muteIcon = QIcon::fromTheme(iconString).pixmap(ICON_SIZE * ratio, ICON_SIZE * ratio);
+        QPixmap muteIcon = QIcon::fromTheme(iconString).pixmap(QSize(ICON_SIZE, ICON_SIZE), ratio);
         muteIcon.setDevicePixelRatio(ratio);
         QPixmap appIconSource(getIconFromTheme(m_inputInter->icon(), QSize(ICON_SIZE, ICON_SIZE), devicePixelRatioF()));
 

@@ -112,7 +112,8 @@ void WirelessItem::paintEvent(QPaintEvent *e)
     const Dock::DisplayMode displayMode = Dock::DisplayMode::Efficient;
 
     const auto ratio = devicePixelRatioF();
-    const int iconSize = PLUGIN_ICON_MAX_SIZE;
+    // 与 sound 等状态图标保持一致的视觉大小，满格 20 会显得偏大
+    const int iconSize = PLUGIN_ICON_MAX_SIZE * 0.8;
     QPixmap pixmap = iconPix(displayMode, iconSize * ratio);
     pixmap.setDevicePixelRatio(ratio);
 
