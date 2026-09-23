@@ -1,5 +1,7 @@
 #include "tipswidget.h"
 
+#include <DGuiApplicationHelper>
+
 #include <QPainter>
 
 TipsWidget::TipsWidget(QWidget *parent) : QFrame(parent)
@@ -28,7 +30,9 @@ void TipsWidget::paintEvent(QPaintEvent *event)
     refreshFont();
 
     QPainter painter(this);
-    painter.setPen(QPen(palette().brightText(), 1));
+    const bool dark = Dtk::Gui::DGuiApplicationHelper::instance()->themeType()
+        == Dtk::Gui::DGuiApplicationHelper::DarkType;
+    painter.setPen(QPen(dark ? QColor(Qt::white) : QColor(Qt::black), 1));
 
     QTextOption option;
     option.setAlignment(Qt::AlignCenter);
