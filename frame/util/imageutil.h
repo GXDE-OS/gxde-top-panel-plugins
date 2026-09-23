@@ -23,12 +23,16 @@
 #define IMAGEUTIL_H
 
 #include <QPixmap>
+#include <QColor>
 #include <QSvgRenderer>
 
 class ImageUtil
 {
 public:
     static const QPixmap loadSvg(const QString &iconName, const QString &localPath, const int size, const qreal ratio);
+    // 把近白色的像素染成 color（保留透明度），彩色部分不动；
+    // 用于浅色面板上显示主题里画成白色的 symbolic 图标
+    static QPixmap tintWhitePixels(const QPixmap &pixmap, const QColor &color);
 };
 
 #endif // IMAGEUTIL_H

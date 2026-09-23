@@ -21,9 +21,11 @@
 
 #include "snitraywidget.h"
 #include "util/themeappicon.h"
+#include "util/imageutil.h"
 //#include <dbusmenu-qt6/dbusmenuimporter.h>
 #include <dbusmenu-lxqt/dbusmenuimporter.h>
 #include <QPainter>
+#include <DGuiApplicationHelper>
 #include <QApplication>
 #include <QResizeEvent>
 
@@ -91,6 +93,9 @@ SNITrayWidget::SNITrayWidget(const QString &sniServicePath, QWidget *parent)
     m_updateAttentionIconTimer->setSingleShot(true);
 
     connect(m_updateIconTimer, &QTimer::timeout, this, &SNITrayWidget::refreshIcon);
+    // symbolic 主题图标在浅色/深色面板上颜色不同，切换深浅时重新生成
+    connect(DGuiApplicationHelper::instance(), &DGuiApplicationHelper::themeTypeChanged,
+            m_updateIconTimer, static_cast<void (QTimer::*)()>(&QTimer::start));
     connect(m_updateOverlayIconTimer, &QTimer::timeout, this, &SNITrayWidget::refreshOverlayIcon);
     connect(m_updateAttentionIconTimer, &QTimer::timeout, this, &SNITrayWidget::refreshAttentionIcon);
 
@@ -564,6 +569,12 @@ QPixmap SNITrayWidget::newIconPixmap(IconType iconType)
         if (!iconName.isEmpty()) {
             // ThemeAppIcon::getIcon 会处理高分屏缩放问题
             pixmap = ThemeAppIcon::getIcon(iconName, drawSize, devicePixelRatioF());
+            // 只有主题里的 symbolic 图标（通常画成白色）在浅色面板上染深；
+            // 应用自己提供的像素图/图片文件保持原色，不做反色
+            if (!pixmap.isNull() && iconName.endsWith(QLatin1String("-symbolic"))
+                    && DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
+                pixmap = ImageUtil::tintWhitePixels(pixmap, QColor(40, 40, 40));
+            }
             if (!pixmap.isNull()) {
                 break;
             }

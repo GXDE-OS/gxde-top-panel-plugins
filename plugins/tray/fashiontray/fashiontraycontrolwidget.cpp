@@ -189,7 +189,8 @@ void FashionTrayControlWidget::refreshArrowPixmap()
         break;
     }
 
-    if (height() <= PLUGIN_BACKGROUND_MIN_SIZE && DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
+    // 浅色面板一律用深色箭头（托盘不再经过面板的前景色染色）
+    if (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType) {
         iconPath.append("-dark");
     }
 

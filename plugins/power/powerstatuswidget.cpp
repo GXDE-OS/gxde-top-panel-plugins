@@ -21,6 +21,7 @@
 
 #include "powerstatuswidget.h"
 #include "powerplugin.h"
+#include "../../frame/util/imageutil.h"
 #include <DGuiApplicationHelper>
 
 #include <QPainter>
@@ -102,6 +103,8 @@ QPixmap PowerStatusWidget::getBatteryIcon()
     // 与 sound/network 等状态图标统一为 16px 视觉大小
     QPixmap pix = QIcon::fromTheme(iconStr).pixmap(QSize(16, 16), ratio);
     pix.setDevicePixelRatio(ratio);
+    if (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType)
+        pix = ImageUtil::tintWhitePixels(pix, QColor(40, 40, 40));
 
     return pix;
 }

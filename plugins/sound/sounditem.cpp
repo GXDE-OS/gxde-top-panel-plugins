@@ -200,6 +200,8 @@ void SoundItem::refreshIcon()
     const QIcon icon = QIcon::fromTheme(iconString);
     m_iconPixmap = icon.pixmap(QSize(iconSize, iconSize), ratio);
     m_iconPixmap.setDevicePixelRatio(ratio);
+    if (DGuiApplicationHelper::instance()->themeType() == DGuiApplicationHelper::LightType)
+        m_iconPixmap = ImageUtil::tintWhitePixels(m_iconPixmap, QColor(40, 40, 40));
 
     update();
 }
