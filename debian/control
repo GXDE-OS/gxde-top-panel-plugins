@@ -22,7 +22,8 @@ Build-Depends: debhelper (>= 8.0.0),
  libgxde-network-utils-qt6-dev (>= 1.0.0),
  libdbusmenu-lxqt-dev,
  clang [mips64el],
- libdtk6gui-dev
+ libdtk6gui-dev,
+ qdbus-qt6
 Standards-Version: 3.9.8
 Homepage: http://www.deepin.org/
 

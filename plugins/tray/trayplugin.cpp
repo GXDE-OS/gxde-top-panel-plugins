@@ -443,7 +443,7 @@ void TrayPlugin::traySNIAdded(const QString &itemKey, const QString &sniServiceP
     QString nsiServerName = list.takeFirst();
 
     QProcess p;
-    p.start("qdbus", {nsiServerName});
+    p.start("qdbus6", {nsiServerName});
     if (!p.waitForFinished(1000)) {
         qWarning() << "sni dbus service error : " << nsiServerName;
         return;
