@@ -22,15 +22,14 @@ Build-Depends: debhelper (>= 8.0.0),
  libgxde-network-utils-qt6-dev (>= 1.0.0),
  libdbusmenu-lxqt-dev,
  clang [mips64el],
- libdtk6gui-dev,
- qdbus-qt6
+ libdtk6gui-dev
 Standards-Version: 3.9.8
 Homepage: http://www.deepin.org/
 
 
 Package: gxde-top-panel-plugins
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}, gxde-desktop-schemas (>= 4.0.2)
+Depends: ${shlibs:Depends}, ${misc:Depends}, gxde-desktop-schemas (>= 4.0.2), qdbus-qt6
 Description: gxde desktop-environment - dock plugin for gxde top panel
  
 Package: dde-top-panel-plugins
