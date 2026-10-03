@@ -1,12 +1,16 @@
-gxde-top-panel-plugins (6.1.0) UNRELEASED; urgency=medium
+gxde-top-panel-plugins (6.1.1) UNRELEASED; urgency=medium
 
+  [ CharOfString ]
   * 支持任意切换系统图标样式：系统图标包、Deepin 23、Deepin 25
   * 更新插件UI
   * 修复Wayland下图标过的的问题
   * 将IME图标染色为与文本图标同色
   * 更新音频控制弹窗UI
 
- -- CharOfString <root@charofstring.cc>  Wed, 23 Sep 2026 14:29:11 -0500
+  [ zeqi ]
+  * 修复顶栏托盘异常无法正常显示托盘图标的问题（https://gitee.com/GXDE-OS/GXDE/issues/IDHNXZ ）
+
+ -- gfdgd_xi <3025613752@qq.com>  Sat, 03 Oct 2026 22:51:24 +0800
 
 gxde-top-panel-plugins (6.0.5) UNRELEASED; urgency=medium
 
