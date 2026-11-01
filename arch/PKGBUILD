@@ -1,7 +1,7 @@
 # Maintainer: CharOfString <root@charofstring.cc>
 pkgbase=gxde-top-panel-plugins-git
 pkgname=('gxde-top-panel-plugins-git' 'dde-top-panel-plugins-git')
-pkgver=6.1.1
+pkgver=6.1.2
 pkgrel=1
 pkgdesc='Plugins for the GXDE top panel'
 arch=('x86_64' 'aarch64')
