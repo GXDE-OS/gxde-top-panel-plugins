@@ -7,6 +7,56 @@
     </message>
 </context>
 <context>
+    <name>BluetoothApplet</name>
+    <message>
+        <source>Bluetooth</source>
+        <translation>蓝牙</translation>
+    </message>
+    <message>
+        <source>My Devices</source>
+        <translation>我的设备</translation>
+    </message>
+    <message>
+        <source>Other Devices</source>
+        <translation>其他设备</translation>
+    </message>
+    <message>
+        <source>Connecting…</source>
+        <translation>连接中…</translation>
+    </message>
+    <message>
+        <source>Bluetooth settings</source>
+        <translation>蓝牙设置</translation>
+    </message>
+</context>
+<context>
+    <name>BluetoothPlugin</name>
+    <message>
+        <source>Bluetooth</source>
+        <translation>蓝牙</translation>
+    </message>
+    <message>
+        <source>Turned off</source>
+        <translation>蓝牙关闭</translation>
+    </message>
+    <message>
+        <source>%1 connected</source>
+        <translation>%1 已连接</translation>
+    </message>
+    <message>
+        <source>Turn off</source>
+        <translation>关闭</translation>
+    </message>
+    <message>
+        <source>Turn on</source>
+        <translation>开启</translation>
+    </message>
+    <message>
+        <source>Bluetooth settings</source>
+        <translation>蓝牙设置</translation>
+    </message>
+</context>
+<context>
     <name>DBusAdaptors</name>
     <message>
         <source>Add keyboard layout</source>
