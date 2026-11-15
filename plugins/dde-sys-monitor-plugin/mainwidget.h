@@ -30,6 +30,10 @@ public:
     void UpdateData(const Info& info,Dock::Position position,const Settings& settings);
     QSize sizeHint() const;
 
+signals:
+    //文字宽度变化时发出，插件收到后调用 itemUpdate 让面板重新计算条目尺寸
+    void requestUpdateGeometry();
+
 public:
     int dpi;
     QBoxLayout *centralLayout;
@@ -44,6 +48,8 @@ public:
     Settings oldsettings;
     //保存之前的位置
     Dock::Position oldposition;
+    //保存上一次的sizeHint，用于检测内容宽度变化
+    QSize m_lastSizeHint;
 
 
 private:

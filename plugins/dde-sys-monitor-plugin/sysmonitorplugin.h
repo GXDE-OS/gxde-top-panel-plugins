@@ -44,6 +44,8 @@ public:
     void positionChanged(const Dock::Position position)override;
 
 	const QString toHumanRead(unsigned long l,const char *unit,int digit);
+	//读取小文件的内容(用于读取/sys/class/hwmon下的传感器数据)
+	const QString readFile(const QString path);
 public:
     static struct SettingItem settingItems[];//公共的保存默认设置的数组
 

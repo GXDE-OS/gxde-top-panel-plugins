@@ -1,10 +1,10 @@
 #include "sysmonitorplugin.h"
+#include <QDir>
 
 //设置选项和默认值,静态全局变量
 struct SettingItem SysMonitorPlugin::settingItems[]={
 //全局设置选项
 {"chartModeCheckBox",0},//图表模式开关
-{"batInfoComboBox",0},//气泡电池信息开关
 {"updateIntervalSpinBox",1000},//更新间隔ms
 
 //文字模式设置选项
@@ -129,31 +129,55 @@ void SysMonitorPlugin::refreshInfo()
     info.snetup=toHumanRead(tmps,"B",0);
     info.snetdwon=toHumanRead(tmpr,"B",0);
 
-    //每10s执行一次，降低cpu开销
-    if(settings.value("batInfoComboBox").toInt()==1&&bat_count==0)
+    //每10s执行一次，降低cpu开销；CPU温度和电池功率始终采集，悬浮窗常显这两行(与dde-dock一致)
+    if(bat_count==0)
     {
         //使用upower命令获得电池信息，兼容性最好，deepin默认预装有upower
-        fp=NULL;
+        battery_watts=0.0;
         //使用popen执行shell命令并返回一个流来读取电池信息
-        fp=popen("upower -i $(upower -e | grep 'BAT') | grep -E 'energy-rate'","r");
+        fp=popen("upower -i $(upower -e | grep 'BAT') | grep -E 'energy-rate|state'","r");
         if(fp==NULL){perror("popen");return;}
-        battery_watts=-1.0;
-        fscanf(fp,"    energy-rate:         %lf W",&battery_watts);
+        buffer[0]='\0';
+        double watts=-1.0;
+        fscanf(fp,"    state:               %s",buffer);
+        fscanf(fp,"    energy-rate:         %lf W",&watts);
         pclose(fp);
+        //放电时功率记为负数；没有电池时按0W处理(与dde-dock一致，悬浮窗BATTERY行常显)
+        if(watts>=0){
+            battery_watts=(strcmp("discharging",buffer)==0)?-watts:watts;
+            info.sbat=QString("%1W").arg(battery_watts,0,'f',2);
+        }else{
+            battery_watts=0.0;
+            info.sbat=QString();
+        }
 
-        //使用sensors获得CPU温度
-        fp=NULL;
-        fp=popen("sensors | grep 'Core 0'","r");
-        info.cputemp=0;
-        if(fp != NULL){
-            fscanf(fp,"Core 0:        %lf°C",&info.cputemp);
+        //参考dde-dock的实现直接读取/sys/class/hwmon获取CPU温度，
+        //比sensors命令兼容性好(AMD平台的k10temp没有"Core 0"条目，grep不到)
+        int cpuAllTemp = 0;
+        int cpuSensorNum = 0;
+        QDir sensorDirList("/sys/class/hwmon/");
+        for (QString i: sensorDirList.entryList(QDir::Dirs)) {
+            if (!QFile::exists("/sys/class/hwmon/" + i + "/name")) {
+                continue;
+            }
+            QString name = readFile("/sys/class/hwmon/" + i + "/name");
+            name = name.replace("\n", "").replace("-", "_");
+
+            if (name == "coretemp" || name == "k10temp" || name == "k8temp" || name == "cpu_hwmon") {
+                QDir cpuSensorList("/sys/class/hwmon/" + i);
+                for (QString j: cpuSensorList.entryList(QDir::Files)) {
+                    if (!((j.contains("temp")) && j.contains("_input"))) {
+                        continue;
+                    }
+                    ++cpuSensorNum;
+                    cpuAllTemp += readFile("/sys/class/hwmon/" + i + "/" + j).toInt();
+                }
+            }
         }
-        else {
-            perror("Could not run sensors command");
-        }
-        pclose(fp);
-        info.scputemp=QString("%1℃").arg(info.cputemp);
+        if(cpuSensorNum)info.cputemp=cpuAllTemp/cpuSensorNum/1000.0;
+        info.scputemp=QString("%1℃").arg(info.cputemp,0,'f',1);
     }
+    info.bat=battery_watts;
     //大于等于10秒就归零
     bat_count*settings.value("updateIntervalSpinBox").toInt()>=10*1000?bat_count=0:bat_count++;
 	
@@ -199,6 +223,14 @@ const QString SysMonitorPlugin::toHumanRead(unsigned long l,const char *unit,int
 	else if(count==4)str+="P";
     return str;
 }
+const QString SysMonitorPlugin::readFile(const QString path)
+{
+    QFile file(path);
+    file.open(QFile::ReadOnly);
+    QString data = file.readAll();
+    file.close();
+    return data;
+}
 //使用系统配置函数读配置信息
 void SysMonitorPlugin::readConfig(Settings *settings)
 {
@@ -239,6 +271,11 @@ void SysMonitorPlugin::init(PluginProxyInterface *proxyInter)
     readConfig(&settings);
 
     m_mainWidget = new MainWidget(settings,position());
+    // 条目内容宽度变化时通知面板重新计算条目尺寸，避免追加的温度/功率文字被截断
+    connect(m_mainWidget, &MainWidget::requestUpdateGeometry, this, [this] {
+        if (m_proxyInter)
+            m_proxyInter->itemUpdate(this, pluginName());
+    });
     m_tipsWidget = new QLabel;
     m_appletWidget = new QLabel;
 	font.setFamily("Noto Mono");
@@ -275,23 +312,19 @@ QWidget *SysMonitorPlugin::itemWidget(const QString &itemKey)
 
 void SysMonitorPlugin::m_Widget_update(QLabel* label)
 {
-    // 设置/刷新 tips 中的信息
-    QString baseInfo= QString("CPU:  %1 %2\n"
-                              "MEM: %3/%4=%5\n"
-                              "SWAP:%6/%7=%8\n"
-                              "UP:  %9 %10/s\n"
-                              "DOWN:%11 %12/s")
-.arg(info.scpu).arg(info.scputemp)
+    //设置/刷新 tips 中的信息，格式与dde-dock版插件完全一致
+    label->setText(QString("MEM: %1/%2=%3\n"
+                           "SWAP:%4/%5=%6\n"
+                           "UP:  %7 %8/S\n"
+                           "DOWN:%9 %10/S\n"
+                           "BATTERY:%11W\n"
+                           "CPU Temp:%12°C")
 .arg(toHumanRead(totalmem-availablemem,"KB",1)).arg(toHumanRead(totalmem,"KB",1)).arg(info.smem)
 .arg(toHumanRead(totalswap-freeswap,"KB",1)).arg(toHumanRead(totalswap,"KB",1)).arg(strswap)
 .arg(toHumanRead(oldsbytes,"B",1)).arg(toHumanRead(tmps,"B",1))
-.arg(toHumanRead(oldrbytes,"B",1)).arg(toHumanRead(tmpr,"B",1));
-
-    QString batInfo("");
-    if(battery_watts>=0&&settings.value("batInfoComboBox").toInt())
-        batInfo= QString("\nBAT: %1W").arg(QString::number(battery_watts,'f',2));
-
-    label->setText(baseInfo+batInfo);
+.arg(toHumanRead(oldrbytes,"B",1)).arg(toHumanRead(tmpr,"B",1))
+.arg(QString::number(battery_watts,'f',2))
+.arg(QString::number(info.cputemp,'f',2)));
 }
 
 QWidget *SysMonitorPlugin::itemTipsWidget(const QString &itemKey)
@@ -305,7 +338,15 @@ QWidget *SysMonitorPlugin::itemTipsWidget(const QString &itemKey)
 QWidget *SysMonitorPlugin::itemPopupApplet(const QString &itemKey)
 {
     Q_UNUSED(itemKey);
-    m_Widget_update(m_appletWidget);
+    //弹出小面板内容与dde-dock版插件一致(不含BATTERY和CPU Temp两行)
+    m_appletWidget->setText(QString("MEM: %1/%2=%3\n"
+                                    "SWAP:%4/%5=%6\n"
+                                    "UP:  %7 %8/S\n"
+                                    "DOWN:%9 %10/S")
+.arg(toHumanRead(totalmem-availablemem,"KB",1)).arg(toHumanRead(totalmem,"KB",1)).arg(info.smem)
+.arg(toHumanRead(totalswap-freeswap,"KB",1)).arg(toHumanRead(totalswap,"KB",1)).arg(strswap)
+.arg(toHumanRead(oldsbytes,"B",1)).arg(toHumanRead(tmps,"B",1))
+.arg(toHumanRead(oldrbytes,"B",1)).arg(toHumanRead(tmpr,"B",1)));
     return m_appletWidget;
 }
 

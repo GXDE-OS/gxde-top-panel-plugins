@@ -128,6 +128,11 @@
        <string>显示CP&amp;U、内存和网速</string>
       </property>
      </item>
+     <item>
+      <property name="text">
+       <string>显示CPU、内存、网速、电池和CPU温度</string>
+      </property>
+     </item>
     </widget>
     <widget class="QLabel" name="label_29">
      <property name="geometry">
@@ -1349,6 +1354,57 @@
     <string>使用图表模式 </string>
    </property>
   </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>150</x>
+     <y>40</y>
+     <width>171</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <property name="text">
+    <string>显示电池功率和CPU温度：</string>
+   </property>
+  </widget>
+  <widget class="QComboBox" name="batInfoComboBox">
+   <property name="visible">
+    <bool>false</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>320</x>
+     <y>31</y>
+     <width>80</width>
+     <height>36</height>
+    </rect>
+   </property>
+   <property name="minimumSize">
+    <size>
+     <width>80</width>
+     <height>0</height>
+    </size>
+   </property>
+   <property name="currentText">
+    <string>关闭</string>
+   </property>
+   <property name="currentIndex">
+    <number>0</number>
+   </property>
+   <item>
+    <property name="text">
+     <string>关闭</string>
+    </property>
+   </item>
+   <item>
+    <property name="text">
+     <string>打开</string>
+    </property>
+   </item>
+  </widget>
   <widget class="QLabel" name="label_15">
    <property name="geometry">
     <rect>
@@ -1386,51 +1442,6 @@
    <property name="value">
     <number>1000</number>
    </property>
-  </widget>
-  <widget class="QLabel" name="label_4">
-   <property name="geometry">
-    <rect>
-     <x>150</x>
-     <y>40</y>
-     <width>171</width>
-     <height>22</height>
-    </rect>
-   </property>
-   <property name="text">
-    <string>显示电池功率和CPU温度：</string>
-   </property>
-  </widget>
-  <widget class="QComboBox" name="batInfoComboBox">
-   <property name="geometry">
-    <rect>
-     <x>320</x>
-     <y>31</y>
-     <width>80</width>
-     <height>36</height>
-    </rect>
-   </property>
-   <property name="minimumSize">
-    <size>
-     <width>80</width>
-     <height>0</height>
-    </size>
-   </property>
-   <property name="currentText">
-    <string>关闭</string>
-   </property>
-   <property name="currentIndex">
-    <number>0</number>
-   </property>
-   <item>
-    <property name="text">
-     <string>关闭</string>
-    </property>
-   </item>
-   <item>
-    <property name="text">
-     <string>打开</string>
-    </property>
-   </item>
   </widget>
  </widget>
  <resources/>

@@ -94,6 +94,21 @@ void MainWidget::UpdateData(const Info &info, Dock::Position position, const Set
 
         switch (settings.value("displayContentComboBox").toInt())
         {
+        case DisplayContentSetting::AllAndTempAndBattery:
+            //与dde-dock版插件的同名模式样式一致：单标签两行，含Tem/Bat字段。
+            //两行文字宽度不同（Tem:xx°C 比 Bat:xx.xW 长），必须左对齐才能上下两列对齐，
+            //居中对齐会让短的一行缩进
+            cpuMemLabel->setAlignment(Qt::AlignVCenter|Qt::AlignLeft);
+            cpuMemLabel->setVisible(true);
+            netLabel->setVisible(false);
+            cpuMemLabel->setText(QString("CPU:%1↑%2/S Tem:%3°C\nMEM:%4↓%5/S Bat:%6W")
+                                 .arg(info.scpu)
+                                 .arg(info.snetup)
+                                 .arg(QString::number(info.cputemp, 'f', 1))
+                                 .arg(info.smem)
+                                 .arg(info.snetdwon)
+                                 .arg(QString::number(qMax(info.bat, 0.0), 'f', 1)));
+            break;
         case DisplayContentSetting::CPUMEM:
             cpuMemLabel->setVisible(true);
             netLabel->setVisible(false);
@@ -220,6 +235,17 @@ void MainWidget::UpdateData(const Info &info, Dock::Position position, const Set
 
     }
     oldsettings=settings;
+
+    //数值变化可能让文字变宽/变窄（如 99K -> 1.0M，勾选温度后行尾追加温度），sizeHint 随之改变。
+    //面板只在条目增删、托盘数量变化时重算条目宽度，不会自动响应这个变化，
+    //需要主动通知它重新计算，否则条目一直保持创建时的宽度，文字被截断/挤在一起。
+    const QSize newHint=sizeHint();
+    if(newHint!=m_lastSizeHint)
+    {
+        m_lastSizeHint=newHint;
+        updateGeometry();
+        emit requestUpdateGeometry();
+    }
     //qDebug()<<"MainWidget::UpdateData() finished";
 }
 
@@ -233,6 +259,7 @@ QSize MainWidget::sizeHint() const
         switch (oldsettings.value("displayContentComboBox").toInt())
         {
             case DisplayContentSetting::CPUMEM:
+            case DisplayContentSetting::AllAndTempAndBattery://全部文字都在cpuMemLabel上，算法同CPUMEM
                 w=QFontMetrics(font).boundingRect(cpuMemLabel->text()).size().width()/2;
                 h=QFontMetrics(font).boundingRect(cpuMemLabel->text()).size().height()*2;
                 break;
