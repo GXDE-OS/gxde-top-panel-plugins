@@ -1,14 +1,14 @@
 # Maintainer: CharOfString <root@charofstring.cc>
-pkgbase=gxde-top-panel-plugins-git
-pkgname=('gxde-top-panel-plugins-git' 'dde-top-panel-plugins-git')
+pkgbase=gxde-top-panel-plugins
+pkgname=('gxde-top-panel-plugins' 'dde-top-panel-plugins')
 pkgver=6.1.2
 pkgrel=1
 pkgdesc='Plugins for the GXDE top panel'
 arch=('x86_64' 'aarch64')
 url="https://github.com/GXDE-OS/gxde-top-panel-plugins"
 license=('GPL-3.0-or-later')
-_depends=('gxde-desktop-schemas-git' 'dtk6widget-git' 'dtk6gui-git' 'dtk6core-git' 'dframework-dbus-qt6-git'
-          'gxde-network-utils-qt6-git' 'gsettings-qt6' 'libdbusmenu-lxqt' 'qt6-base' 'qt6-svg'
+_depends=('gxde-desktop-schemas' 'gxde-dtk6widget' 'gxde-dtk6gui' 'gxde-dtk6core' 'dframework-dbus-qt6'
+          'gxde-network-utils-qt6' 'gsettings-qt6' 'libdbusmenu-lxqt' 'qt6-base' 'qt6-svg'
           'libxcb' 'xcb-util-wm' 'xcb-util-image' 'libxtst' 'libgcc' 'libstdc++' 'glibc')
 makedepends=('git' 'cmake' 'ninja' 'qt6-tools' "${_depends[@]}")
 source=()
@@ -32,21 +32,23 @@ build() {
 # Same as debian/*.install: only the two plugin directories are packaged.  The
 # legacy dde-dock files CMake also installs (.pc, CMake config, interface
 # headers, ...) are not packaged on Debian either and collide with gxde-dock.
-package_gxde-top-panel-plugins-git() {
+package_gxde-top-panel-plugins() {
   # qdbus-qt6 在 Arch 上由 qt6-tools 提供 ・ qdbus-qt6 comes from qt6-tools on Arch.
   depends=("${_depends[@]}" 'qt6-tools')
-  provides=('gxde-top-panel-plugins')
-  conflicts=('gxde-top-panel-plugins')
+  provides=("gxde-top-panel-plugins-git=$pkgver")
+  conflicts=('gxde-top-panel-plugins-git')
+  replaces=('gxde-top-panel-plugins-git')
 
   install -d "$pkgdir/usr/lib/gxde-top-panel"
   cp -r "$srcdir/root/usr/lib/gxde-top-panel/plugins" "$pkgdir/usr/lib/gxde-top-panel/"
 }
 
-package_dde-top-panel-plugins-git() {
+package_dde-top-panel-plugins() {
   pkgdesc='Plugins for the GXDE top panel (legacy dde-top-panel path)'
   depends=("${_depends[@]}")
-  provides=('dde-top-panel-plugins')
-  conflicts=('dde-top-panel-plugins')
+  provides=("dde-top-panel-plugins-git=$pkgver")
+  conflicts=('dde-top-panel-plugins-git')
+  replaces=('dde-top-panel-plugins-git')
 
   install -d "$pkgdir/usr/lib/dde-top-panel"
   cp -r "$srcdir/root/usr/lib/dde-top-panel/plugins" "$pkgdir/usr/lib/dde-top-panel/"
